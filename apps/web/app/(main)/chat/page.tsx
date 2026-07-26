@@ -72,6 +72,7 @@ export default function ChatPage() {
     connected: { text: "Connected", cls: "badge-connected" },
     searching: { text: "Searching", cls: "badge-searching animate-search-pulse" },
     connecting: { text: "Connecting", cls: "badge-connecting" },
+    disconnected: { text: "Disconnected", cls: "badge-idle" },
     idle: { text: "Idle", cls: "badge-idle" },
   }[connectionState] || { text: "Idle", cls: "badge-idle" };
 
