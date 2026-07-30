@@ -57,6 +57,10 @@ app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/report", reportRoutes);
 
+app.get("/", (_req, res) => {
+  res.redirect(process.env.CLIENT_URL || "https://co-patner.netlify.app");
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
