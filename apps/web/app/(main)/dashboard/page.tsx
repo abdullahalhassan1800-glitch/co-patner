@@ -74,7 +74,7 @@ export default function DashboardPage() {
           const realUsers = (data.users || []).map(serverUserToOnlineUser);
           setUsers(realUsers);
           const myId = serverUserId;
-          if (myId && !realUsers.find((u) => u.id === myId)) {
+          if (myId && !realUsers.find((u: OnlineUser) => u.id === myId)) {
             localStorage.removeItem("co_patner_user");
             localStorage.removeItem("co_patner_token");
             window.location.reload();
