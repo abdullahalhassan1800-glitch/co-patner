@@ -3,7 +3,7 @@ export interface OnlineUser {
   name: string;
   age: number;
   country: string;
-  gender: "male" | "female";
+  gender: "male" | "female" | "other";
   avatar: string;
   isOnline: boolean;
   isLive: boolean;
