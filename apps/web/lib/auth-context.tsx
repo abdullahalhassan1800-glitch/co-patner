@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const serverAuthRef = useRef(false);
 
   useEffect(() => {
+    if (!auth) { setLoading(false); return; }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (serverAuthRef.current) {
         setLoading(false);
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     });
-    getRedirectResult(auth).catch(() => {});
+    if (auth) getRedirectResult(auth).catch(() => {});
 
     const timeout = setTimeout(() => setLoading(false), 5000);
     return () => {
@@ -103,6 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
+    if (!auth) throw new Error("Firebase not available");
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (isMobile) {
       await signInWithRedirect(auth, googleProvider);
