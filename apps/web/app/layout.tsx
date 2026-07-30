@@ -3,6 +3,8 @@ import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import { AuthProvider } from "@/lib/auth-context";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Co-Patner - Live Random Video Chat with Strangers",
   description: "Connect face-to-face with people worldwide. Free, safe, anonymous video chat. Meet real people from 180+ countries instantly.",
