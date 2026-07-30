@@ -26,7 +26,7 @@ export function useSocket(userId: string | undefined) {
       if (lastSocketIdRef.current !== socket.id) {
         console.log("🔄 Socket reconnected with new ID, re-registering:", userId);
         socket.emit("register", userId);
-        lastSocketIdRef.current = socket.id;
+      lastSocketIdRef.current = socket.id ?? null;
       }
     };
     const onDisconnect = () => setIsConnected(false);
