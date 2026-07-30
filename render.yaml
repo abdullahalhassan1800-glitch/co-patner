@@ -17,3 +17,15 @@ services:
         generateValue: true
       - key: MONGODB_URI
         sync: false
+      - key: NEXT_PUBLIC_FIREBASE_API_KEY
+        value: AIzaSyB4tbxMiCr1571wkiQa8BH8-db0MwU3SNc
+      - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+        value: funcam-6c254.firebaseapp.com
+      - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+        value: funcam-6c254
+      - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+        value: funcam-6c254.firebasestorage.app
+      - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+        value: "121518820033"
+      - key: NEXT_PUBLIC_FIREBASE_APP_ID
+        value: 1:121518820033:web:73993e03d669664f566240
