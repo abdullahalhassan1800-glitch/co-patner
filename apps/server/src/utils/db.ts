@@ -58,7 +58,7 @@ export const db = {
       await User.findByIdAndUpdate(userId, { $pull: { friends: friendId } });
     },
     async getAll() {
-      return serialize(User.find({}).select("-password").lean());
+      return serialize(await User.find({}).select("-password").lean());
     },
     async getFriends(userId: string) {
       const user = await User.findById(userId).lean();
@@ -90,7 +90,7 @@ export const db = {
       return serialize(tx.toObject());
     },
     async findByUserId(userId: string) {
-      return serialize(Transaction.find({ userId }).sort({ createdAt: -1 }).limit(50).lean());
+      return serialize(await Transaction.find({ userId }).sort({ createdAt: -1 }).limit(50).lean());
     },
   },
 

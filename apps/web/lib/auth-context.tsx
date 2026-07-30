@@ -34,35 +34,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const serverAuthRef = useRef(false);
 
   useEffect(() => {
-    if (!auth) {
+    // Restore session from localStorage before Firebase callback can override
+    try {
       const stored = localStorage.getItem("co_patner_user");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setUser({ uid: parsed.id || parsed._id, email: parsed.email, displayName: parsed.name } as any);
-        } catch {}
+      const token = localStorage.getItem("co_patner_token");
+      if (stored && token) {
+        const parsed = JSON.parse(stored);
+        setUser({ uid: parsed.id || parsed._id, email: parsed.email, displayName: parsed.name } as any);
       }
+    } catch {}
+
+    if (!auth) {
       setLoading(false);
       return;
     }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (serverAuthRef.current) {
         setLoading(false);
         return;
       }
-      setUser(firebaseUser);
-      if (firebaseUser && syncedRef.current !== firebaseUser.uid) {
-        syncedRef.current = firebaseUser.uid;
-        try {
-          const data = await api.auth.google({
-            email: firebaseUser.email || "",
-            name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
-            avatar: firebaseUser.photoURL || undefined,
-          });
-          localStorage.setItem("co_patner_token", data.token);
-          localStorage.setItem("co_patner_user", JSON.stringify({ ...data.user, id: data.user._id || data.user.id }));
-        } catch (err) {
-          console.error("Server auth sync failed:", err);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        if (syncedRef.current !== firebaseUser.uid) {
+          syncedRef.current = firebaseUser.uid;
+          try {
+            const data = await api.auth.google({
+              email: firebaseUser.email || "",
+              name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+              avatar: firebaseUser.photoURL || undefined,
+            });
+            localStorage.setItem("co_patner_token", data.token);
+            localStorage.setItem("co_patner_user", JSON.stringify({ ...data.user, id: data.user._id || data.user.id }));
+          } catch (err) {
+            console.error("Server auth sync failed:", err);
+          }
         }
       }
       setLoading(false);
