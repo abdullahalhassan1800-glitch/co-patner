@@ -7,6 +7,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
+import { spawn } from "child_process";
+import httpProxy from "http-proxy";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import walletRoutes from "./routes/wallet";
@@ -14,6 +16,23 @@ import reportRoutes from "./routes/report";
 import { db } from "./utils/db";
 import { setupSocketHandlers } from "./socket/handlers";
 import { initTelegramBot } from "./services/telegram";
+
+const NEXTJS_PORT = 3000;
+const nextProxy = httpProxy.createProxyServer({ target: `http://localhost:${NEXTJS_PORT}` });
+
+if (process.env.NODE_ENV === "production") {
+  const nextBin = path.resolve(__dirname, "../../web/node_modules/next/dist/bin/next");
+  const nextServer = spawn("node", [nextBin, "start", "-p", String(NEXTJS_PORT)], {
+    cwd: path.resolve(__dirname, "../../web"),
+    stdio: "inherit",
+    env: { ...process.env, NODE_ENV: "production" },
+  });
+  nextServer.on("error", (err) => console.error("Next.js error:", err));
+  const cleanup = () => nextServer.kill();
+  process.on("exit", cleanup);
+  process.on("SIGTERM", cleanup);
+  process.on("SIGINT", cleanup);
+}
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -62,10 +81,8 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
 });
 
-const frontendPath = path.join(__dirname, "../../web/out");
-app.use(express.static(frontendPath));
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+app.get("*", (req, res) => {
+  nextProxy.web(req, res, { target: `http://localhost:${NEXTJS_PORT}` });
 });
 
 async function seedUsers() {
