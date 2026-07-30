@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
 
 const SLIDES = [
   {
@@ -34,7 +33,6 @@ const SLIDES = [
 ];
 
 export default function RegisterPage() {
-  const router = useRouter();
   const router = useRouter();
   const { signUpWithEmail, signInWithGoogle, user } = useAuth();
   const [email, setEmail] = useState("");
