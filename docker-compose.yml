@@ -15,8 +15,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: velio
-      MONGO_INITDB_ROOT_PASSWORD: velio_secret_2024
+      MONGO_INITDB_ROOT_USERNAME: co_patner
+      MONGO_INITDB_ROOT_PASSWORD: co_patner_secret_2024
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped

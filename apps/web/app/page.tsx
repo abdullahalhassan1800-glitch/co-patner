@@ -24,7 +24,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setTimeout(() => setShow(true), 100);
-    const s = localStorage.getItem("velio_user");
+    const s = localStorage.getItem("co_patner_user");
     if (s) setUser(JSON.parse(s));
 
     const interval = setInterval(() => {
@@ -73,10 +73,9 @@ export default function HomePage() {
 
           {/* Headline */}
           <h1 className={`text-5xl sm:text-6xl lg:text-[5.5rem] font-black leading-[0.92] tracking-tight mb-8 transition-all duration-1000 delay-150 ease-out ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <span className="text-white block">Live Random</span>
-            <span className="gradient-text block mt-1">Video Chat</span>
+            <span className="gradient-text block">Co-Patner</span>
             <span className="text-white block mt-1 text-4xl sm:text-5xl lg:text-6xl">
-              Connect <span className="gradient-text-warm">Instantly</span>
+              Live Random <span className="gradient-text-warm">Video Chat</span>
             </span>
           </h1>
 
@@ -101,12 +100,21 @@ export default function HomePage() {
               <span className="text-xl ml-1">&rarr;</span>
             </button>
             {!user && (
-              <button
-                onClick={() => router.push("/login")}
-                className="btn-ghost px-8 py-4.5 rounded-2xl text-lg font-semibold text-gray-300 hover:text-white h-14 flex items-center justify-center gap-2"
-              >
-                Already a member? <span className="text-primary-light font-bold">Login</span>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => router.push("/login")}
+                  className="btn-ghost px-8 py-4.5 rounded-2xl text-lg font-semibold text-gray-300 hover:text-white h-14 flex items-center justify-center gap-2"
+                >
+                  Already a member? <span className="text-primary-light font-bold">Login</span>
+                </button>
+                <button
+                  onClick={() => router.push("/phone-login")}
+                  className="btn-ghost px-5 py-4.5 rounded-2xl text-base font-semibold text-gray-400 hover:text-white h-14 flex items-center justify-center gap-2 border border-white/[0.06] hover:border-white/20"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12" y2="18" /></svg>
+                  Login with Phone
+                </button>
+              </div>
             )}
           </div>
 
@@ -240,7 +248,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-black">
               <span className="text-white">Why </span>
-              <span className="gradient-text">Velio</span>
+              <span className="gradient-text">Co-Patner</span>
               <span className="text-white">?</span>
             </h2>
             <p className="text-gray-500 mt-4 max-w-xl mx-auto">The best way to meet new people face to face</p>
@@ -345,8 +353,8 @@ export default function HomePage() {
       <footer className="relative border-t border-white/[0.04] py-10 px-6 sm:px-8">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg gradient-glow flex items-center justify-center text-xs font-black text-white">V</div>
-            <span className="font-extrabold text-sm tracking-tight text-white">Velio</span>
+            <div className="w-8 h-8 rounded-lg gradient-glow flex items-center justify-center text-xs font-black text-white">C</div>
+            <span className="font-extrabold text-sm tracking-tight text-white">Co-Patner</span>
           </div>
           <p className="text-gray-600 text-xs">18+ only. Community guidelines apply. No videos stored.</p>
           <div className="flex gap-6 text-xs text-gray-500">

@@ -32,15 +32,15 @@ export default function ChatPage() {
   useSocket(user?.id);
 
   useEffect(() => {
-    const stored = localStorage.getItem("velio_user");
-    const token = localStorage.getItem("velio_token");
+    const stored = localStorage.getItem("co_patner_user");
+    const token = localStorage.getItem("co_patner_token");
     if (!stored || !token) { router.push("/login"); return; }
     setUser(JSON.parse(stored));
-    setAgeVerified(localStorage.getItem("velio_age_verified") === "true");
+    setAgeVerified(localStorage.getItem("co_patner_age_verified") === "true");
   }, [router]);
 
   const handleAgeConfirm = () => {
-    localStorage.setItem("velio_age_verified", "true");
+    localStorage.setItem("co_patner_age_verified", "true");
     setAgeVerified(true);
   };
 

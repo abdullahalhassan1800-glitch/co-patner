@@ -29,11 +29,19 @@ function generateBot() {
 
 export function setupSocketHandlers(io: Server) {
   const onlineUsers = new Map<string, string>();
+  (io as any).__onlineUsers = onlineUsers; // expose for debug endpoint
 
   io.on("connection", (socket: Socket) => {
-    console.log(`🔌 User connected: ${socket.id}`);
+    console.log(`🔌 User connected: ${socket.id} | Total: ${io.sockets.sockets.size} | transport: ${socket.conn.transport.name}`);
+    console.log(`🔌 Handshake headers:`, JSON.stringify({
+      origin: socket.handshake.headers.origin,
+      host: socket.handshake.headers.host,
+      'user-agent': socket.handshake.headers['user-agent']?.substring(0, 50),
+      'x-forwarded-for': socket.handshake.headers['x-forwarded-for'],
+    }));
 
     socket.on("register", (userId: string) => {
+      console.log(`📌 Register: socket ${socket.id} → userId ${userId} | onlineUsers now: ${[...onlineUsers.entries()].map(([s,u])=>`${u}@${s.substring(0,6)}`).join(", ")}`);
       onlineUsers.set(socket.id, userId);
     });
 
@@ -129,13 +137,30 @@ export function setupSocketHandlers(io: Server) {
 
     socket.on("call_request", (data: { toUserId: string; mode: "audio" | "video" }) => {
       const fromUserId = onlineUsers.get(socket.id);
-      if (!fromUserId) return;
-      const targetSocketId = [...onlineUsers.entries()].find(([_, uid]) => uid === data.toUserId)?.[0];
-      if (!targetSocketId) return socket.emit("call_rejected", { reason: "User offline" });
-      io.to(targetSocketId).emit("call_incoming", { fromUserId, mode: data.mode, fromSocketId: socket.id });
+      if (!fromUserId) {
+        console.log(`📞 call_request: caller socket ${socket.id} not registered`);
+        return socket.emit("call_rejected", { reason: "You are not registered. Please refresh." });
+      }
+      const allOnline = [...onlineUsers.entries()].map(([sid, uid]) => `${uid}@${sid.substring(0,6)}`);
+      console.log(`📞 call_request: ${fromUserId} (${socket.id.substring(0,6)}) → ${data.toUserId} [${data.mode}]`);
+      console.log(`📞 onlineUsers: [${allOnline.join(", ")}]`);
+      const targetSocketIds = [...onlineUsers.entries()]
+        .filter(([_, uid]) => uid === data.toUserId)
+        .map(([sid]) => sid);
+      if (targetSocketIds.length === 0) {
+        console.log(`📞 call_request: target ${data.toUserId} offline`);
+        return socket.emit("call_rejected", { reason: "User offline" });
+      }
+      console.log(`📞 Sending call_incoming to ${targetSocketIds.length} socket(s): ${targetSocketIds.map(s => s.substring(0,6)).join(", ")}`);
+      targetSocketIds.forEach((sid) => {
+        io.to(sid).emit("call_incoming", { fromUserId, mode: data.mode, fromSocketId: socket.id });
+      });
+      console.log(`📞 call_incoming sent. rooms:`, io.sockets.adapter.rooms?.size || "N/A");
+      socket.emit("call_requested", { toUserId: data.toUserId, socketId: targetSocketIds[0] });
     });
 
     socket.on("call_accept", (data: { toSocketId: string }) => {
+      console.log(`📞 call_accept: ${socket.id} accepted, notifying ${data.toSocketId}`);
       io.to(data.toSocketId).emit("call_accepted", { fromSocketId: socket.id });
     });
 
@@ -145,6 +170,18 @@ export function setupSocketHandlers(io: Server) {
 
     socket.on("call_end", (data: { toSocketId: string; duration: number; cost: number }) => {
       io.to(data.toSocketId).emit("call_ended", { duration: data.duration, cost: data.cost });
+    });
+
+    socket.on("call_webrtc_offer", (data: { offer: any; toSocketId: string }) => {
+      io.to(data.toSocketId).emit("call_webrtc_offer", { offer: data.offer, from: socket.id });
+    });
+
+    socket.on("call_webrtc_answer", (data: { answer: any; toSocketId: string }) => {
+      io.to(data.toSocketId).emit("call_webrtc_answer", { answer: data.answer, from: socket.id });
+    });
+
+    socket.on("call_ice_candidate", (data: { candidate: any; toSocketId: string }) => {
+      io.to(data.toSocketId).emit("call_ice_candidate", { candidate: data.candidate, from: socket.id });
     });
 
     socket.on("accept_friend_request", async (data: { fromUserId: string }) => {

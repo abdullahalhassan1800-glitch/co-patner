@@ -8,9 +8,11 @@ interface CallOverlayProps {
   user: OnlineUser;
   mode: "audio" | "video";
   onEndCall: () => void;
+  remoteStream: MediaStream | null;
+  localStream: MediaStream | null;
 }
 
-export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps) {
+export default function CallOverlay({ user, mode, onEndCall, remoteStream, localStream }: CallOverlayProps) {
   const [seconds, setSeconds] = useState(0);
   const [cost, setCost] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -18,7 +20,23 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [currentCredits, setCurrentCredits] = useState(getCredits());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
   const rate = mode === "video" ? RATE_VIDEO : RATE_AUDIO;
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch(() => {});
+    }
+  }, [remoteStream]);
+
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+      localVideoRef.current.play().catch(() => {});
+    }
+  }, [localStream]);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -45,6 +63,20 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
     return `${m}:${s}`;
   }, []);
 
+  const toggleMute = useCallback(() => {
+    if (localStream) {
+      localStream.getAudioTracks().forEach((t) => { t.enabled = isMuted; });
+    }
+    setIsMuted(!isMuted);
+  }, [isMuted, localStream]);
+
+  const toggleVideo = useCallback(() => {
+    if (localStream) {
+      localStream.getVideoTracks().forEach((t) => { t.enabled = isVideoOff; });
+    }
+    setIsVideoOff(!isVideoOff);
+  }, [isVideoOff, localStream]);
+
   const handleEnd = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     onEndCall();
@@ -52,49 +84,64 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
 
   return (
     <div className="fixed inset-0 z-[110] flex flex-col bg-black">
-      {/* Ambient */}
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
         <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[200px]" />
         <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
       </div>
 
-      {/* Main video area */}
       <div className="flex-1 relative flex items-center justify-center">
-        {/* Partner video (full screen placeholder) */}
         <div className="absolute inset-0 flex items-center justify-center">
           {mode === "video" && !isVideoOff ? (
             <div className="w-full h-full bg-[#0a0a14] flex items-center justify-center">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-full h-full object-cover opacity-30"
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+                style={{ transform: "scaleX(-1)" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              {!remoteStream && (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="absolute w-32 h-32 rounded-full object-cover ring-4 ring-primary/30"
+                />
+              )}
             </div>
           ) : (
             <div className="w-full h-full bg-[#0a0a14] flex items-center justify-center">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-32 h-32 rounded-full object-cover ring-4 ring-primary/30"
-              />
+              {remoteStream && mode === "video" ? (
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover opacity-40"
+                  style={{ transform: "scaleX(-1)" }}
+                />
+              ) : (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="w-32 h-32 rounded-full object-cover ring-4 ring-primary/30"
+                />
+              )}
             </div>
           )}
         </div>
 
-        {/* Self video (PiP) */}
-        {mode === "video" && !isVideoOff && (
+        {mode === "video" && !isVideoOff && localStream && (
           <div className="absolute top-5 right-5 w-28 h-40 rounded-2xl overflow-hidden border border-white/10 shadow-2xl z-10 bg-[#0a0a14]">
-            <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-              <svg className="w-8 h-8 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+              style={{ transform: "scaleX(-1)" }}
+            />
           </div>
         )}
 
-        {/* Top bar - user info + timer */}
         <div className="absolute top-0 left-0 right-0 p-5 flex items-start justify-between z-20 bg-gradient-to-b from-black/60 to-transparent">
           <div className="flex items-center gap-3">
             <img
@@ -113,7 +160,6 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
             </div>
           </div>
 
-          {/* Timer + cost */}
           <div className="text-right">
             <div className="flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
@@ -131,11 +177,9 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
           </div>
         </div>
 
-        {/* Bottom controls */}
         <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center gap-5 z-20 bg-gradient-to-t from-black/60 to-transparent">
-          {/* Mute */}
           <button
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={toggleMute}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 ${
               isMuted
                 ? "bg-accent/20 border border-accent/30"
@@ -160,10 +204,9 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
             )}
           </button>
 
-          {/* Video toggle (only for video mode) */}
           {mode === "video" && (
             <button
-              onClick={() => setIsVideoOff(!isVideoOff)}
+              onClick={toggleVideo}
               className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 ${
                 isVideoOff
                   ? "bg-accent/20 border border-accent/30"
@@ -184,7 +227,6 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
             </button>
           )}
 
-          {/* Speaker */}
           <button className="w-14 h-14 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-white/15 transition-all duration-300 active:scale-90">
             <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
@@ -192,7 +234,6 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
             </svg>
           </button>
 
-          {/* End call */}
           <button
             onClick={() => setShowEndConfirm(true)}
             className="w-16 h-16 rounded-full bg-accent flex items-center justify-center hover:bg-accent-light transition-all duration-300 active:scale-90 shadow-lg shadow-accent/30"
@@ -205,7 +246,6 @@ export default function CallOverlay({ user, mode, onEndCall }: CallOverlayProps)
         </div>
       </div>
 
-      {/* End confirm dialog */}
       {showEndConfirm && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="glass-strong rounded-3xl p-6 mx-4 max-w-sm w-full animate-scale-in shadow-2xl">

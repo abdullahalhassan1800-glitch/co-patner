@@ -1,5 +1,5 @@
-const CREDITS_KEY = "velio_credits";
-const DEFAULT_CREDITS = 100;
+const CREDITS_KEY = "co_patner_credits";
+const DEFAULT_CREDITS = 100000;
 
 export const RATE_AUDIO = 49;
 export const RATE_VIDEO = 69;

@@ -1,7 +1,9 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+import { getServerUrl } from "@/lib/url";
+
+const API_URL = getServerUrl();
 
 async function fetchApi(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("velio_token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("co_patner_token") : null;
 
   const res = await fetch(`${API_URL}/api${endpoint}`, {
     ...options,
@@ -23,7 +25,15 @@ export const api = {
       fetchApi("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
     register: (data: { email: string; password: string; name: string; gender?: string; age?: number }) =>
       fetchApi("/auth/register", { method: "POST", body: JSON.stringify(data) }),
+    google: (data: { email: string; name: string; avatar?: string }) =>
+      fetchApi("/auth/google", { method: "POST", body: JSON.stringify(data) }),
     me: () => fetchApi("/auth/me"),
+    phoneCheck: (phone: string) =>
+      fetchApi("/auth/phone/check", { method: "POST", body: JSON.stringify({ phone }) }),
+    phoneSendOtp: (phone: string) =>
+      fetchApi("/auth/phone/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
+    phoneVerifyOtp: (data: { phone: string; otp: string; name?: string }) =>
+      fetchApi("/auth/phone/verify-otp", { method: "POST", body: JSON.stringify(data) }),
   },
   user: {
     getProfile: (id: string) => fetchApi(`/user/profile/${id}`),

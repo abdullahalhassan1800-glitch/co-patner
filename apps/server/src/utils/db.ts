@@ -1,188 +1,103 @@
-// In-memory store - replaces Redis + MongoDB for demo
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { User } from "../models/User";
+import { Report } from "../models/Report";
+import { Transaction } from "../models/Transaction";
 
-const JWT_SECRET = process.env.JWT_SECRET || "velio_jwt_secret_2024";
+const JWT_SECRET = process.env.JWT_SECRET || "co_patner_jwt_secret";
 
-interface UserData {
-  _id: string;
-  email: string;
-  password?: string;
-  name: string;
-  avatar: string;
-  gender: string;
-  age: number;
-  country: string;
-  bio: string;
-  interests: string[];
-  credits: number;
-  isPremium: boolean;
-  reportCount: number;
-  isBanned: boolean;
-  friends: string[];
-  createdAt: Date;
-  updatedAt: Date;
+function serialize(doc: any) {
+  if (!doc) return doc;
+  if (Array.isArray(doc)) return doc.map(serialize);
+  const obj = { ...doc };
+  if (obj._id && typeof obj._id !== "string") obj._id = obj._id.toString();
+  return obj;
 }
 
-interface ReportData {
-  _id: string;
-  reporter: string;
-  reported: string;
-  reason: string;
-  description: string;
-  status: string;
-  createdAt: Date;
-}
-
-interface TransactionData {
-  _id: string;
-  userId: string;
-  amount: number;
-  type: string;
-  description: string;
-  createdAt: Date;
-}
-
-// Collections
-const users = new Map<string, UserData>();
-const reports = new Map<string, ReportData>();
-const transactions = new Map<string, TransactionData>();
+// In-memory stores for ephemeral data
 const waitingQueue: any[] = [];
 const rooms = new Map<string, any>();
 const clientRooms = new Map<string, string>();
+const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
-let idCounter = 1;
-function genId() { return `id_${Date.now()}_${idCounter++}`; }
-
-// ===== USER operations =====
 export const db = {
   users: {
-    async create(data: Partial<UserData>): Promise<UserData> {
-      const id = genId();
-      const hashedPw = data.password ? await bcrypt.hash(data.password, 10) : undefined;
-      const user: UserData = {
-        _id: id,
-        email: data.email || "",
-        password: hashedPw,
-        name: data.name || "",
-        avatar: data.avatar || "/default-avatar.png",
-        gender: data.gender || "other",
-        age: data.age || 18,
-        country: data.country || "IN",
-        bio: data.bio || "",
-        interests: data.interests || [],
+    async create(data: any) {
+      if (data.password) data.password = await bcrypt.hash(data.password, 10);
+      const user = await User.create({
+        ...data,
         credits: data.credits ?? 10,
-        isPremium: data.isPremium || false,
-        reportCount: 0,
-        isBanned: false,
-        friends: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      users.set(id, user);
-      return user;
+      });
+      return serialize(user.toObject());
     },
-    async findByEmail(email: string): Promise<UserData | undefined> {
-      for (const u of users.values()) {
-        if (u.email === email) return u;
-      }
-      return undefined;
+    async findByEmail(email: string) {
+      if (!email) return undefined;
+      const user = await User.findOne({ email }).lean();
+      return serialize(user) || undefined;
     },
-    async findById(id: string): Promise<UserData | undefined> {
-      return users.get(id);
+    async findByPhone(phone: string) {
+      if (!phone) return undefined;
+      const user = await User.findOne({ phone }).lean();
+      return serialize(user) || undefined;
     },
-    async update(id: string, data: Partial<UserData>): Promise<UserData | undefined> {
-      const user = users.get(id);
-      if (!user) return undefined;
-      Object.assign(user, data, { updatedAt: new Date() });
-      return user;
+    async findById(id: string) {
+      const user = await User.findById(id).lean();
+      return serialize(user) || undefined;
     },
-    async incrementCredits(id: string, amount: number): Promise<void> {
-      const user = users.get(id);
-      if (user) user.credits += amount;
+    async update(id: string, data: any) {
+      const user = await User.findByIdAndUpdate(id, { $set: data }, { new: true }).lean();
+      return serialize(user) || undefined;
     },
-    async addFriend(userId: string, friendId: string): Promise<void> {
-      const user = users.get(userId);
-      if (user && !user.friends.includes(friendId)) {
-        user.friends.push(friendId);
-      }
+    async incrementCredits(id: string, amount: number) {
+      await User.findByIdAndUpdate(id, { $inc: { credits: amount } });
     },
-    async removeFriend(userId: string, friendId: string): Promise<void> {
-      const user = users.get(userId);
-      if (user) {
-        user.friends = user.friends.filter(f => f !== friendId);
-      }
+    async addFriend(userId: string, friendId: string) {
+      await User.findByIdAndUpdate(userId, { $addToSet: { friends: friendId } });
     },
-    async getFriends(userId: string): Promise<any[]> {
-      const user = users.get(userId);
-      if (!user) return [];
-      return user.friends.map(fid => {
-        const f = users.get(fid);
-        return f ? { _id: f._id, name: f.name, avatar: f.avatar, gender: f.gender, country: f.country } : null;
-      }).filter(Boolean);
-    }
+    async removeFriend(userId: string, friendId: string) {
+      await User.findByIdAndUpdate(userId, { $pull: { friends: friendId } });
+    },
+    async getAll() {
+      return serialize(User.find({}).select("-password").lean());
+    },
+    async getFriends(userId: string) {
+      const user = await User.findById(userId).lean();
+      if (!user || !user.friends?.length) return [];
+      const friends = await User.find({ _id: { $in: user.friends } })
+        .select("_id name avatar gender country")
+        .lean();
+      return serialize(friends);
+    },
   },
 
-  // ===== REPORT operations =====
   reports: {
-    async create(data: Partial<ReportData>): Promise<ReportData> {
-      const id = genId();
-      const report: ReportData = {
-        _id: id,
-        reporter: data.reporter || "",
-        reported: data.reported || "",
-        reason: data.reason || "",
-        description: data.description || "",
-        status: "pending",
-        createdAt: new Date(),
-      };
-      reports.set(id, report);
-      return report;
+    async create(data: any) {
+      const report = await Report.create(data);
+      return serialize(report.toObject());
     },
-    async countByReported(reportedId: string): Promise<number> {
-      let count = 0;
-      for (const r of reports.values()) {
-        if (r.reported === reportedId) count++;
-      }
-      return count;
+    async countByReported(reportedId: string) {
+      return Report.countDocuments({ reported: reportedId });
     },
-    async findByReporterAndReported(reporterId: string, reportedId: string): Promise<ReportData | undefined> {
-      for (const r of reports.values()) {
-        if (r.reporter === reporterId && r.reported === reportedId) return r;
-      }
-      return undefined;
-    }
+    async findByReporterAndReported(reporterId: string, reportedId: string) {
+      const report = await Report.findOne({ reporter: reporterId, reported: reportedId }).lean();
+      return serialize(report) || undefined;
+    },
   },
 
-  // ===== TRANSACTION operations =====
   transactions: {
-    async create(data: Partial<TransactionData>): Promise<TransactionData> {
-      const id = genId();
-      const tx: TransactionData = {
-        _id: id,
-        userId: data.userId || "",
-        amount: data.amount || 0,
-        type: data.type || "spend",
-        description: data.description || "",
-        createdAt: new Date(),
-      };
-      transactions.set(id, tx);
-      return tx;
+    async create(data: any) {
+      const tx = await Transaction.create(data);
+      return serialize(tx.toObject());
     },
-    async findByUserId(userId: string): Promise<TransactionData[]> {
-      const result: TransactionData[] = [];
-      for (const t of transactions.values()) {
-        if (t.userId === userId) result.push(t);
-      }
-      return result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 50);
-    }
+    async findByUserId(userId: string) {
+      return serialize(Transaction.find({ userId }).sort({ createdAt: -1 }).limit(50).lean());
+    },
   },
 
-  // ===== QUEUE operations (replaces Redis) =====
   queue: {
     push(entry: any) { waitingQueue.push(entry); },
     remove(socketId: string) {
-      const idx = waitingQueue.findIndex(e => e.socketId === socketId);
+      const idx = waitingQueue.findIndex((e: any) => e.socketId === socketId);
       if (idx !== -1) waitingQueue.splice(idx, 1);
     },
     getAll() { return [...waitingQueue]; },
@@ -191,10 +106,9 @@ export const db = {
       const a = waitingQueue.shift();
       const b = waitingQueue.shift();
       return [a, b];
-    }
+    },
   },
 
-  // ===== ROOM operations =====
   rooms: {
     create(roomId: string, data: any) { rooms.set(roomId, data); },
     get(roomId: string) { return rooms.get(roomId); },
@@ -210,7 +124,6 @@ export const db = {
     setClientRoom(socketId: string, roomId: string) { clientRooms.set(socketId, roomId); },
   },
 
-  // ===== TOKEN =====
   generateToken(userId: string): string {
     return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "30d" });
   },
@@ -220,5 +133,28 @@ export const db = {
     } catch {
       return null;
     }
-  }
+  },
+
+  otp: {
+    set(phone: string, otp: string): void {
+      otpStore.set(phone, { otp, expiresAt: Date.now() + 5 * 60 * 1000 });
+    },
+    get(phone: string): string | undefined {
+      const entry = otpStore.get(phone);
+      if (!entry) return undefined;
+      if (Date.now() > entry.expiresAt) {
+        otpStore.delete(phone);
+        return undefined;
+      }
+      return entry.otp;
+    },
+    delete(phone: string): void {
+      otpStore.delete(phone);
+    },
+    cleanup(): void {
+      for (const [phone, entry] of otpStore.entries()) {
+        if (Date.now() > entry.expiresAt) otpStore.delete(phone);
+      }
+    },
+  },
 };

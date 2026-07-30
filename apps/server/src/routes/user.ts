@@ -12,6 +12,15 @@ function authMiddleware(req: any, res: Response, next: any) {
   next();
 }
 
+router.get("/all", async (_req: any, res: Response) => {
+  try {
+    const allUsers = await db.users.getAll();
+    res.json({ users: allUsers });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/profile/:id", authMiddleware, async (req: any, res: Response) => {
   try {
     const user = await db.users.findById(req.params.id);

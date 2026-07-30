@@ -19,7 +19,7 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("velio_user");
+    const stored = localStorage.getItem("co_patner_user");
     if (!stored) { router.push("/login"); return; }
     setCredits(JSON.parse(stored).credits || 0);
     loadHistory();
@@ -34,9 +34,9 @@ export default function WalletPage() {
     try {
       const data = await api.wallet.recharge(amount);
       setCredits(data.credits);
-      const stored = JSON.parse(localStorage.getItem("velio_user") || "{}");
+      const stored = JSON.parse(localStorage.getItem("co_patner_user") || "{}");
       stored.credits = data.credits;
-      localStorage.setItem("velio_user", JSON.stringify(stored));
+      localStorage.setItem("co_patner_user", JSON.stringify(stored));
       loadHistory();
     } catch {}
     setLoading(false);

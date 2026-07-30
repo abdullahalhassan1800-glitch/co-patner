@@ -12,7 +12,7 @@ export default function TermsPage() {
       <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-6 pt-24 pb-20">
         <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-sm">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
-          Back to Velio
+          Back to Co-Patner
         </Link>
 
         <h1 className="text-3xl font-black text-white mb-2">TERMS OF USE OF SERVICES</h1>
@@ -23,7 +23,7 @@ export default function TermsPage() {
             These Terms of Service (&quot;TOS&quot;) are an electronic document in terms of the Information Technology Act, 2000 and rules made thereunder and the amended provisions pertaining to electronic documents / records in various statutes as amended by the Information Technology Act, 2000. This TOS does not require any physical, electronic or digital signature.
           </p>
           <p>
-            The mobile application, <span className="text-white font-bold">Velio</span> (hereinafter &quot;App&quot;), is owned and operated by <span className="text-white font-bold">Omaza Innovations LLP</span> (&quot;We&quot;, &quot;Us&quot;, or &quot;Our&quot;).
+            The mobile application, <span className="text-white font-bold">Co-Patner</span> (hereinafter &quot;App&quot;), is owned and operated by <span className="text-white font-bold">Omaza Innovations LLP</span> (&quot;We&quot;, &quot;Us&quot;, or &quot;Our&quot;).
           </p>
 
           {/* Grievance Officer */}

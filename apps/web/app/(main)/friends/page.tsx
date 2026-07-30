@@ -10,7 +10,7 @@ export default function FriendsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("velio_token");
+    const token = localStorage.getItem("co_patner_token");
     if (!token) { router.push("/login"); return; }
     loadFriends();
   }, [router]);

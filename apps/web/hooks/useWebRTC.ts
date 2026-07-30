@@ -9,12 +9,15 @@ const ICE_SERVERS: RTCConfiguration = {
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "turn:openrelayproject.com:5349", username: "openrelayproject", credential: "openrelayproject" },
   ],
 };
 
 export function useWebRTC(userId: string | undefined) {
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("idle");
   const [room, setRoom] = useState<Room | null>(null);
@@ -36,13 +39,18 @@ export function useWebRTC(userId: string | undefined) {
     });
 
     pc.ontrack = (event) => {
-      setRemoteStream(event.streams[0]);
+      if (!event.track) return;
+      if (!remoteStreamRef.current) {
+        remoteStreamRef.current = new MediaStream();
+      }
+      remoteStreamRef.current.addTrack(event.track);
+      setRemoteStream(remoteStreamRef.current);
     };
 
     pc.onicecandidate = (event) => {
       if (event.candidate && room) {
         getSocket().emit("ice_candidate", {
-          candidate: event.candidate.toJSON(),
+          candidate: { candidate: event.candidate.candidate, sdpMid: event.candidate.sdpMid, sdpMLineIndex: event.candidate.sdpMLineIndex },
           roomId: room.roomId,
         });
       }
@@ -87,9 +95,11 @@ export function useWebRTC(userId: string | undefined) {
       peerRef.current = null;
     }
     setRemoteStream(null);
+    remoteStreamRef.current = null;
     setRoom(null);
     setPartner(null);
     setMessages([]);
+    pendingCandidatesRef.current = [];
   }, []);
 
   const sendMessage = useCallback(
@@ -116,6 +126,20 @@ export function useWebRTC(userId: string | undefined) {
   useEffect(() => {
     const socket = getSocket();
 
+    const flushPendingCandidates = async () => {
+      const pc = peerRef.current;
+      if (!pc || !pc.remoteDescription) return;
+      const pending = pendingCandidatesRef.current.slice();
+      pendingCandidatesRef.current = [];
+      for (const candidate of pending) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error("Error adding buffered ICE candidate:", err);
+        }
+      }
+    };
+
     socket.on("matched", async (data: { roomId: string; role: "caller" | "callee"; partner: Partner }) => {
       setRoom({ roomId: data.roomId, role: data.role, partner: data.partner });
       setPartner(data.partner);
@@ -128,7 +152,7 @@ export function useWebRTC(userId: string | undefined) {
           try {
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
-            socket.emit("webrtc_offer", { offer: offer.toJSON(), roomId: data.roomId });
+            socket.emit("webrtc_offer", { offer: { type: offer.type, sdp: offer.sdp }, roomId: data.roomId });
           } catch (err) {
             console.error("Error creating offer:", err);
           }
@@ -140,10 +164,11 @@ export function useWebRTC(userId: string | undefined) {
       if (peerRef.current && localStreamRef.current) {
         try {
           await peerRef.current.setRemoteDescription(new RTCSessionDescription(data.offer));
+          await flushPendingCandidates();
           const answer = await peerRef.current.createAnswer();
           await peerRef.current.setLocalDescription(answer);
           socket.emit("webrtc_answer", {
-            answer: answer.toJSON(),
+            answer: { type: answer.type, sdp: answer.sdp },
             roomId: room?.roomId,
           });
         } catch (err) {
@@ -156,6 +181,7 @@ export function useWebRTC(userId: string | undefined) {
       if (peerRef.current) {
         try {
           await peerRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+          await flushPendingCandidates();
         } catch (err) {
           console.error("Error handling answer:", err);
         }
@@ -164,6 +190,10 @@ export function useWebRTC(userId: string | undefined) {
 
     socket.on("ice_candidate", async (data: { candidate: RTCIceCandidateInit }) => {
       if (peerRef.current) {
+        if (!peerRef.current.remoteDescription) {
+          pendingCandidatesRef.current.push(data.candidate);
+          return;
+        }
         try {
           await peerRef.current.addIceCandidate(new RTCIceCandidate(data.candidate));
         } catch (err) {

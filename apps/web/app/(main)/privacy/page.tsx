@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-6 pt-24 pb-20">
         <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-8 text-sm">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
-          Back to Velio
+          Back to Co-Patner
         </Link>
 
         <h1 className="text-3xl font-black text-white mb-2">Privacy Policy</h1>
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-8 text-sm text-gray-400 leading-relaxed">
           <p>
-            <span className="text-white font-bold">Omaza Innovations LLP</span> (&quot;We&quot;, &quot;Us&quot;, or &quot;Our&quot;) operates the Velio mobile application (the &quot;App&quot;). This Privacy Policy informs You of our policies regarding the collection, use, and disclosure of personal data when You use our Service and the choices You have associated with that data.
+            <span className="text-white font-bold">Omaza Innovations LLP</span> (&quot;We&quot;, &quot;Us&quot;, or &quot;Our&quot;) operates the Co-Patner mobile application (the &quot;App&quot;). This Privacy Policy informs You of our policies regarding the collection, use, and disclosure of personal data when You use our Service and the choices You have associated with that data.
           </p>
 
           {/* Information We Collect */}
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
           {/* Use of Data */}
           <div>
             <h2 className="text-white font-bold text-lg mb-3">2. USE OF DATA</h2>
-            <p>Velio uses the collected data for various purposes:</p>
+            <p>Co-Patner uses the collected data for various purposes:</p>
             <ul className="mt-2 space-y-1.5 ml-4 list-disc">
               <li>To provide and maintain our Service</li>
               <li>To notify You about changes to our Service</li>

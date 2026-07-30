@@ -46,7 +46,7 @@ export default function AgeGate({ onConfirm }: AgeGateProps) {
           onClick={onConfirm} disabled={!isConfirmed}
           className="w-full btn-glow py-4 rounded-2xl text-base font-bold text-white shadow-xl shadow-primary/25 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-300"
         >
-          Enter Velio
+          Enter Co-Patner
         </button>
 
         <p className="mt-6 text-[11px] text-gray-600">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 
 const SLIDES = [
   {
@@ -33,6 +34,7 @@ const SLIDES = [
 ];
 
 export default function RegisterPage() {
+  const router = useRouter();
   const router = useRouter();
   const { signUpWithEmail, signInWithGoogle, user } = useAuth();
   const [email, setEmail] = useState("");
@@ -100,10 +102,10 @@ export default function RegisterPage() {
         <div className={`w-full max-w-[420px] relative transition-all duration-700 ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 mb-12">
-            <div className="w-10 h-10 rounded-xl gradient-glow flex items-center justify-center font-black text-white text-lg shadow-lg shadow-primary/25">V</div>
+            <div className="w-10 h-10 rounded-xl gradient-glow flex items-center justify-center font-black text-white text-lg shadow-lg shadow-primary/25">C</div>
             <span className="text-2xl font-extrabold tracking-tight">
-              <span className="text-white">Vel</span>
-              <span className="gradient-text">io</span>
+              <span className="text-white">Co-</span>
+              <span className="gradient-text">Patner</span>
             </span>
           </Link>
 
@@ -131,6 +133,17 @@ export default function RegisterPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
               Sign up with Google
+            </button>
+
+            {/* Phone */}
+            <button
+              type="button"
+              onClick={() => router.push("/phone-login")}
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-3 bg-white/[0.06] border border-white/[0.08] text-white font-semibold py-3 rounded-full hover:bg-white/[0.1] transition-all duration-300 active:scale-[0.98] disabled:opacity-40"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12" y2="18" /></svg>
+              Sign up with Phone
             </button>
 
             {/* Divider */}

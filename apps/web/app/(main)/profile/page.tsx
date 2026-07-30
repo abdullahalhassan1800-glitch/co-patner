@@ -11,7 +11,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ name: "", bio: "", gender: "other", age: 18, country: "IN", interests: "" });
 
   useEffect(() => {
-    const stored = localStorage.getItem("velio_user");
+    const stored = localStorage.getItem("co_patner_user");
     if (!stored) { router.push("/login"); return; }
     const u = JSON.parse(stored);
     setUser(u);
@@ -22,7 +22,7 @@ export default function ProfilePage() {
     try {
       const data = await api.user.updateProfile({ ...form, interests: form.interests.split(",").map((s) => s.trim()).filter(Boolean) });
       setUser(data.user);
-      localStorage.setItem("velio_user", JSON.stringify(data.user));
+      localStorage.setItem("co_patner_user", JSON.stringify(data.user));
       setEditing(false);
     } catch {}
   };

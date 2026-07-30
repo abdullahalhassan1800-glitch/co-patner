@@ -1,9 +1,9 @@
 {
-  "name": "velio-web",
+  "name": "co-patner-web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start"
   },

@@ -33,11 +33,11 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl gradient-glow flex items-center justify-center font-black text-white text-sm shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-shadow duration-300">
-              V
+              C
             </div>
             <span className="text-lg font-extrabold tracking-tight hidden sm:block">
-              <span className="text-white">Vel</span>
-              <span className="gradient-text">io</span>
+              <span className="text-white">Co</span>
+              <span className="gradient-text">Patner</span>
             </span>
           </Link>
 
@@ -84,6 +84,10 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                <Link href="/phone-login" className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/[0.04] transition-all duration-300">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12" y2="18" /></svg>
+                  <span className="hidden sm:inline">Phone</span>
+                </Link>
                 <Link href="/login" className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white transition-all duration-300">
                   Login
                 </Link>

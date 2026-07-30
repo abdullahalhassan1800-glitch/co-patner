@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getSocket, connectSocket, disconnectSocket } from "@/lib/socket";
+import { getSocket, connectSocket } from "@/lib/socket";
 import { Socket } from "socket.io-client";
 
 export function useSocket(userId: string | undefined) {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const lastSocketIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -14,11 +15,28 @@ export function useSocket(userId: string | undefined) {
     const socket = connectSocket(userId);
     socketRef.current = socket;
 
-    socket.on("connect", () => setIsConnected(true));
-    socket.on("disconnect", () => setIsConnected(false));
+    if (socket.connected) {
+      setIsConnected(true);
+      socket.emit("register", userId);
+      lastSocketIdRef.current = socket.id;
+    }
+
+    const onConnect = () => {
+      setIsConnected(true);
+      if (lastSocketIdRef.current !== socket.id) {
+        console.log("🔄 Socket reconnected with new ID, re-registering:", userId);
+        socket.emit("register", userId);
+        lastSocketIdRef.current = socket.id;
+      }
+    };
+    const onDisconnect = () => setIsConnected(false);
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
 
     return () => {
-      disconnectSocket();
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
       setIsConnected(false);
     };
   }, [userId]);
