@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head><title>Socket Test</title></head>
+<body>
+<h2>Socket.IO Connection Test</h2>
+<div id="log" style="white-space:pre-wrap;font-family:monospace;background:#111;color:#0f0;padding:16px;border-radius:8px;margin-top:16px;"></div>
+<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+<script>
+const logEl = document.getElementById('log');
+function log(msg, isError) {
+  const p = document.createElement('div');
+  p.textContent = new Date().toISOString().slice(11,19) + ' ' + msg;
+  if (isError) p.style.color = '#f44';
+  logEl.appendChild(p);
+}
+
+log('Testing socket connection...');
+log('Origin: ' + window.location.origin);
+
+// First test a simple API call
+log('--- Step 1: Testing API health...');
+fetch(window.location.origin + '/api/health')
+  .then(r => r.text())
+  .then(t => log('API health OK: ' + t))
+  .catch(e => log('API health FAILED: ' + e.message, true));
+
+// Also try fetching socket.io directly
+log('--- Step 2: Testing socket.io endpoint...');
+fetch(window.location.origin + '/socket.io/?EIO=4&transport=polling')
+  .then(r => r.text())
+  .then(t => log('Socket.io endpoint OK: ' + t))
+  .catch(e => log('Socket.io endpoint FAILED: ' + (e.message || e), true));
+
+// Try with no-cors mode
+fetch(window.location.origin + '/socket.io/?EIO=4&transport=polling', { mode: 'no-cors' })
+  .then(r => log('Socket.io no-cors: status=' + r.status))
+  .catch(e => log('Socket.io no-cors FAILED: ' + e.message, true));
+
+// Step 3: Socket.IO connection
+log('--- Step 3: Socket.IO client...');
+const socket = io(window.location.origin, {
+  transports: ['polling', 'websocket'],
+  timeout: 5000,
+});
+
+socket.on('connect', () => {
+  log('CONNECTED! id=' + socket.id + ' transport=' + socket.io.engine.transport.name);
+});
+
+socket.io.on('error', (err) => {
+  log('ENGINE error: ' + JSON.stringify(err), true);
+});
+
+socket.io.on('open', () => {
+  log('ENGINE open');
+});
+
+socket.on('connect_error', (err) => {
+  log('connect_error: msg=' + err.message + ' type=' + err.type + ' desc=' + err.description, true);
+  if (err.data) log('  data: ' + JSON.stringify(err.data));
+});
+
+socket.on('disconnect', (reason) => {
+  log('disconnect: ' + reason, true);
+});
+
+setTimeout(() => {
+  log('--- Status after 8s ---');
+  log('connected=' + socket.connected + ' id=' + (socket.id || 'null'));
+  if (socket.io) {
+    log('engine=' + socket.io.engine.transport.name + ' upgrading=' + socket.io.engine.upgrading);
+  }
+}, 8000);
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface IUser extends Document {
+export interface IUser {
+  _id: string;
   email: string;
   phone: string;
   password?: string;
@@ -20,6 +21,7 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
+    _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
     email: { type: String, default: "" },
     phone: { type: String, default: "" },
     password: { type: String },
@@ -36,7 +38,7 @@ const UserSchema = new Schema<IUser>(
     isBanned: { type: Boolean, default: false },
     friends: [{ type: String }],
   },
-  { timestamps: true }
+  { timestamps: true, _id: false }
 );
 
 export const User = mongoose.model<IUser>("User", UserSchema);
