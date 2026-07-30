@@ -1,21 +1,18 @@
 services:
   - type: web
-    name: co-patner-backend
+    name: co-patner
     runtime: node
     region: oregon
     plan: free
-    rootDir: apps/server
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: cd apps/web && npm install && npm run build && cd ../server && npm install && npm run build
+    startCommand: cd apps/server && node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 4000
       - key: CLIENT_URL
-        value: https://co-patner.vercel.app
+        value: https://co-patner.onrender.com
       - key: CORS_ORIGINS
-        value: https://co-patner.vercel.app,https://co-patner-backend.onrender.com
+        value: https://co-patner.onrender.com
       - key: JWT_SECRET
         generateValue: true
       - key: MONGODB_URI

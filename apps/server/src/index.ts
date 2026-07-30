@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import path from "path";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -57,12 +58,14 @@ app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/report", reportRoutes);
 
-app.get("/", (_req, res) => {
-  res.redirect(process.env.CLIENT_URL || "https://co-patner.netlify.app");
-});
-
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });
+});
+
+const frontendPath = path.join(__dirname, "../../web/out");
+app.use(express.static(frontendPath));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 async function seedUsers() {
