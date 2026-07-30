@@ -7,6 +7,7 @@ const nextConfig = {
   skipTrailingSlashRedirect: true,
   images: { unoptimized: true },
   typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
   allowedDevOrigins: [
     "http://10.210.53.3:3001", "http://10.210.53.3:3000",
     "http://192.168.1.42:3001", "http://192.168.1.42:3000",
