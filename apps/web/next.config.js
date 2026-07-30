@@ -1,3 +1,5 @@
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
@@ -13,6 +15,10 @@ const nextConfig = {
     "https://192.168.1.14:3001", "https://192.168.1.14:3000",
     "https://192.168.1.14:3443",
   ],
+  webpack: (config) => {
+    config.resolve.alias["@"] = path.join(__dirname);
+    return config;
+  },
 };
 
 module.exports = nextConfig;
