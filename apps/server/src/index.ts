@@ -3,7 +3,7 @@ dotenv.config();
 
 import path from "path";
 import express from "express";
-import { createServer } from "http";
+import http, { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -19,19 +19,53 @@ import { initTelegramBot } from "./services/telegram";
 
 const NEXTJS_PORT = 3000;
 const nextProxy = httpProxy.createProxyServer({ target: `http://localhost:${NEXTJS_PORT}` });
+nextProxy.on("error", (err, req, res: any) => {
+  if (typeof res.writeHead === "function" && !res.headersSent) {
+    res.writeHead(502, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Upstream not ready" }));
+  }
+});
 
-if (process.env.NODE_ENV === "production") {
-  const nextBin = path.resolve(__dirname, "../../web/node_modules/next/dist/bin/next");
-  const nextServer = spawn("node", [nextBin, "start", "-p", String(NEXTJS_PORT)], {
-    cwd: path.resolve(__dirname, "../../web"),
-    stdio: "inherit",
-    env: { ...process.env, NODE_ENV: "production" },
+function waitForPort(port: number, timeout = 60000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const check = () => {
+      const req = http.get(`http://localhost:${port}`, (res) => {
+        res.resume();
+        resolve();
+      });
+      req.on("error", (err: any) => {
+        if (err.code === "ECONNREFUSED") {
+          if (Date.now() - start > timeout) {
+            reject(new Error(`Timeout waiting for port ${port}`));
+          } else {
+            setTimeout(check, 500);
+          }
+        } else {
+          reject(err);
+        }
+      });
+      req.end();
+    };
+    check();
   });
-  nextServer.on("error", (err) => console.error("Next.js error:", err));
-  const cleanup = () => nextServer.kill();
-  process.on("exit", cleanup);
-  process.on("SIGTERM", cleanup);
-  process.on("SIGINT", cleanup);
+}
+
+function startNextJS(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const nextBin = path.resolve(__dirname, "../../web/node_modules/next/dist/bin/next");
+    const nextServer = spawn("node", [nextBin, "start", "-p", String(NEXTJS_PORT)], {
+      cwd: path.resolve(__dirname, "../../web"),
+      stdio: "inherit",
+      env: { ...process.env, NODE_ENV: "production" },
+    });
+    nextServer.on("error", (err) => { console.error("Next.js error:", err); reject(err); });
+    const cleanup = () => nextServer.kill();
+    process.on("exit", cleanup);
+    process.on("SIGTERM", cleanup);
+    process.on("SIGINT", cleanup);
+    waitForPort(NEXTJS_PORT).then(resolve).catch(reject);
+  });
 }
 
 const allowedOrigins = [
@@ -116,6 +150,12 @@ async function start() {
     }
   } else {
     console.log(`⚠️  No MONGODB_URI set — using in-memory storage`);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    console.log(`🚀 Starting Next.js...`);
+    await startNextJS();
+    console.log(`✅ Next.js ready on port ${NEXTJS_PORT}`);
   }
 
   httpServer.listen(PORT, () => {
