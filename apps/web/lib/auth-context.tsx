@@ -34,7 +34,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const serverAuthRef = useRef(false);
 
   useEffect(() => {
-    if (!auth) { setLoading(false); return; }
+    if (!auth) {
+      const stored = localStorage.getItem("co_patner_user");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUser({ uid: parsed.id || parsed._id, email: parsed.email, displayName: parsed.name } as any);
+        } catch {}
+      }
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (serverAuthRef.current) {
         setLoading(false);
