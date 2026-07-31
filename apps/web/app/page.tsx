@@ -89,7 +89,7 @@ export default function HomePage() {
           {/* CTA */}
           <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-1000 delay-[450ms] ease-out ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
             <button
-              onClick={() => router.push(user ? "/dashboard" : "/register")}
+              onClick={() => router.push(user ? "/dashboard" : "/login")}
               className="btn-glow px-10 py-4.5 rounded-2xl text-lg font-bold text-white shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 h-14"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,21 +100,12 @@ export default function HomePage() {
               <span className="text-xl ml-1">&rarr;</span>
             </button>
             {!user && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => router.push("/login")}
-                  className="btn-ghost px-8 py-4.5 rounded-2xl text-lg font-semibold text-gray-300 hover:text-white h-14 flex items-center justify-center gap-2"
-                >
-                  Already a member? <span className="text-primary-light font-bold">Login</span>
-                </button>
-                <button
-                  onClick={() => router.push("/phone-login")}
-                  className="btn-ghost px-5 py-4.5 rounded-2xl text-base font-semibold text-gray-400 hover:text-white h-14 flex items-center justify-center gap-2 border border-white/[0.06] hover:border-white/20"
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12" y2="18" /></svg>
-                  Login with Phone
-                </button>
-              </div>
+              <button
+                onClick={() => router.push("/login")}
+                className="btn-ghost px-8 py-4.5 rounded-2xl text-lg font-semibold text-gray-300 hover:text-white h-14 flex items-center justify-center gap-2"
+              >
+                Already a member? <span className="text-primary-light font-bold">Login</span>
+              </button>
             )}
           </div>
 
@@ -231,7 +222,7 @@ export default function HomePage() {
               </div>
               <div className="mt-8 text-center">
                 <button
-                  onClick={() => router.push(user ? "/wallet" : "/register")}
+                  onClick={() => router.push(user ? "/wallet" : "/login")}
                   className="btn-glow px-8 py-3 rounded-xl text-sm font-bold text-white shadow-lg shadow-primary/25"
                 >
                   Get Coins — Free to Start
@@ -339,7 +330,7 @@ export default function HomePage() {
                 Meet someone new in seconds. Free to start, no credit card needed.
               </p>
               <button
-                onClick={() => router.push(user ? "/dashboard" : "/register")}
+                onClick={() => router.push(user ? "/dashboard" : "/login")}
                 className="btn-glow px-14 py-5 rounded-2xl text-xl font-bold text-white shadow-2xl shadow-primary/40"
               >
                 Start Now &mdash; Free

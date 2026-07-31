@@ -71,7 +71,9 @@ export default function Navbar() {
                   onClick={() => router.push("/profile")}
                   className="w-9 h-9 rounded-full gradient-glow flex items-center justify-center text-white font-bold text-sm ring-2 ring-transparent hover:ring-primary-light/40 transition-all duration-300"
                 >
-                  {user.email?.charAt(0).toUpperCase()}
+                  {(user.displayName || user.email || user.phoneNumber || "U")
+                    ?.charAt(0)
+                    .toUpperCase()}
                 </button>
 
                 <button
@@ -83,18 +85,9 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              <>
-                <Link href="/phone-login" className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/[0.04] transition-all duration-300">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12" y2="18" /></svg>
-                  <span className="hidden sm:inline">Phone</span>
-                </Link>
-                <Link href="/login" className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-400 hover:text-white transition-all duration-300">
-                  Login
-                </Link>
-                <Link href="/register" className="btn-main px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-primary/25">
-                  Join Free
-                </Link>
-              </>
+              <Link href="/login" className="btn-main px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-lg shadow-primary/25">
+                Login / Sign Up
+              </Link>
             )}
           </div>
         </div>
