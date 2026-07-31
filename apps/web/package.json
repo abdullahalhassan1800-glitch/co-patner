@@ -6,7 +6,8 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "generate:icons": "node scripts/generate-icons.js"
+    "generate:icons": "node scripts/generate-icons.js",
+    "generate:screenshots": "node scripts/generate-screenshots.js"
   },
   "dependencies": {
     "clsx": "^2.1.0",

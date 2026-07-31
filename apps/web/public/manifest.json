@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "Co-Patner - Live Random Video Chat",
   "short_name": "Co-Patner",
   "description": "Meet real people from 180+ countries through instant 1-on-1 video chat. Free, safe, anonymous.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -21,6 +24,42 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "short_name": "Discover",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Chat",
+      "short_name": "Chat",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Friends",
+      "short_name": "Friends",
+      "url": "/friends",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-narrow.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Co-Patner home screen"
+    },
+    {
+      "src": "/screenshots/screenshot-wide.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Co-Patner start chatting"
     }
   ]
 }

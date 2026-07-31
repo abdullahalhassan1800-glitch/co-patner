@@ -38,6 +38,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="bg-[#06060A] text-gray-200 antialiased noise">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){"serviceWorker" in navigator && navigator.serviceWorker.register("/sw.js").catch(function(){})})();`,
+          }}
+        />
         <AuthProvider>
           <Navbar />
           <main>{children}</main>
