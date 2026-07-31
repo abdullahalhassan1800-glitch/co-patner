@@ -34,6 +34,8 @@ export const api = {
       fetchApi("/auth/phone/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
     phoneVerifyOtp: (data: { phone: string; otp: string; name?: string }) =>
       fetchApi("/auth/phone/verify-otp", { method: "POST", body: JSON.stringify(data) }),
+    phoneSignIn: (data: { phone: string; name?: string }) =>
+      fetchApi("/auth/phone/signin", { method: "POST", body: JSON.stringify(data) }),
   },
   user: {
     getProfile: (id: string) => fetchApi(`/user/profile/${id}`),

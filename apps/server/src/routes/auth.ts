@@ -151,6 +151,31 @@ router.post("/phone/verify-otp", async (req: any, res: Response) => {
   }
 });
 
+router.post("/phone/signin", async (req: any, res: Response) => {
+  try {
+    const { phone, name } = req.body;
+    if (!phone) return res.status(400).json({ error: "Phone number required" });
+    const phoneClean = phone.replace(/[^+\d]/g, "");
+    if (phoneClean.length < 10) return res.status(400).json({ error: "Invalid phone number" });
+    let user = await db.users.findByPhone(phoneClean);
+    if (!user) {
+      user = await db.users.create({
+        phone: phoneClean,
+        email: "",
+        name: name || "User",
+        password: "",
+      });
+    }
+    if (user.isBanned) return res.status(403).json({ error: "Account banned" });
+    const token = db.generateToken(user._id);
+    const { password: _, ...safe } = user as any;
+    safe.id = safe._id;
+    res.json({ token, user: safe });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/sockets", (req: any, res: Response) => {
   try {
     const io = req.app.get("io");

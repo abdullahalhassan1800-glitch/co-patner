@@ -4,15 +4,27 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api } from "@/lib/api";
+
+function getAuthError(err: any): string {
+  const code = err?.code || "";
+  const map: Record<string, string> = {
+    "auth/invalid-phone-number": "Invalid phone number",
+    "auth/too-many-requests": "Too many attempts. Please try again later.",
+    "auth/quota-exceeded": "SMS quota exceeded. Please try again later.",
+    "auth/invalid-verification-code": "Invalid OTP. Please try again.",
+    "auth/missing-verification-code": "Please enter the OTP.",
+    "auth/network-request-failed": "Network error. Check your connection.",
+    "auth/operation-not-allowed": "Phone sign-in is not enabled in Firebase.",
+    "auth/captcha-check-failed": "reCAPTCHA verification failed. Try again.",
+  };
+  return map[code] || err?.message || "Something went wrong";
+}
 
 export default function LoginPage() {
   const router = useRouter();
-  const { verifyPhoneOTP, user } = useAuth();
+  const { sendPhoneOTP, verifyPhoneOTP, user } = useAuth();
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [generatedOtp, setGeneratedOtp] = useState("");
-  const [verificationId, setVerificationId] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,14 +58,11 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const fullPhone = `+91${cleaned}`;
-      const res = await api.auth.phoneSendOtp(fullPhone);
-      setGeneratedOtp(res.otp);
-      setVerificationId(fullPhone);
+      await sendPhoneOTP(`+91${cleaned}`);
       setStep("otp");
       setCooldown(60);
     } catch (err: any) {
-      setError(err.message || "Failed to send OTP. Try again.");
+      setError(getAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -84,10 +93,10 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      await verifyPhoneOTP(verificationId, code);
+      await verifyPhoneOTP(code);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Invalid OTP. Please try again.");
+      setError(getAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -99,13 +108,10 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const fullPhone = `+91${phone.replace(/[^0-9]/g, "")}`;
-      const res = await api.auth.phoneSendOtp(fullPhone);
-      setGeneratedOtp(res.otp);
-      setVerificationId(fullPhone);
+      await sendPhoneOTP(`+91${phone.replace(/[^0-9]/g, "")}`);
       setCooldown(60);
     } catch (err: any) {
-      setError(err.message || "Failed to resend OTP");
+      setError(getAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -136,6 +142,8 @@ export default function LoginPage() {
             </span>
           </Link>
 
+          <div id="recaptcha-container" className="flex justify-center my-3" />
+
           {step === "phone" ? (
             <>
               <p className="text-sm font-semibold italic text-gray-400 mb-2">No email? No problem.</p>
@@ -143,7 +151,7 @@ export default function LoginPage() {
                 Login / Sign Up with Phone
               </h1>
               <p className="text-sm text-gray-500 mb-8">
-                Enter your phone number to receive an OTP. New numbers are automatically signed up.
+                Enter your phone number to receive an SMS OTP. New numbers are automatically signed up.
               </p>
 
               <div className="max-w-[426px]">
@@ -204,16 +212,11 @@ export default function LoginPage() {
                 Enter OTP
               </h1>
               <p className="text-sm text-gray-500 mb-8">
-                We sent a 6-digit code to{" "}
+                We sent a 6-digit SMS code to{" "}
                 <span className="text-white font-semibold">{maskedPhone}</span>
               </p>
 
               <div className="max-w-[426px]">
-                <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-4 mb-5 text-center">
-                  <p className="text-xs text-gray-500 mb-1">Your OTP</p>
-                  <p className="text-2xl font-bold tracking-widest text-primary-light">{generatedOtp}</p>
-                </div>
-
                 {error && (
                   <div className="bg-accent/10 border border-accent/25 rounded-xl p-3.5 mb-5 text-sm text-accent-light flex items-center gap-2 animate-scale-in">
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
