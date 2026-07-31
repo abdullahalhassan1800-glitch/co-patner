@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   title: "Co-Patner - Live Random Video Chat with Strangers",
   description: "Connect face-to-face with people worldwide. Free, safe, anonymous video chat. Meet real people from 180+ countries instantly.",
   keywords: ["video chat", "random chat", "meet strangers", "live video chat", "random video call", "online chat"],
-  manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }, { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" }],
     apple: "/icons/apple-touch-icon.png",
@@ -38,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="bg-[#06060A] text-gray-200 antialiased noise">
+        <link rel="manifest" href="/manifest.json" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){"serviceWorker" in navigator && navigator.serviceWorker.register("/sw.js").catch(function(){})})();`,

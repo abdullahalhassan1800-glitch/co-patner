@@ -87,12 +87,28 @@ const allowedOrigins = [
   "https://10.252.186.3:3443",
   "https://co-patner.vercel.app",
   "https://co-patner-backend.onrender.com",
+  "https://co-patner.onrender.com",
   process.env.CLIENT_URL,
 ].filter(Boolean) as string[];
 allowedOrigins.push(...(process.env.CORS_ORIGINS || "").split(",").filter(Boolean));
 
 const app = express();
 const httpServer = createServer(app);
+
+// Same-origin CORS: allow any request whose Origin matches the request Host
+// (needed for <link rel="manifest" crossorigin="use-credentials"> fetches).
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const host = req.headers.host;
+  if (origin && host && origin.replace(/^https?:\/\//, "") === host) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", req.headers["access-control-request-headers"] || "Content-Type, Authorization");
+    if (req.method === "OPTIONS") return res.sendStatus(204);
+  }
+  next();
+});
 
 const io = new Server(httpServer, {
   cors: {
