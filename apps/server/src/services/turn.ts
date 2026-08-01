@@ -8,6 +8,15 @@ export function getTurnIceServers(): { urls: string | string[]; username?: strin
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
     { urls: "stun:stun2.l.google.com:19302" },
+    {
+      urls: [
+        "turn:openrelayproject.com:3478?transport=udp",
+        "turn:openrelayproject.com:3478?transport=tcp",
+        "turns:openrelayproject.com:5349?transport=tcp",
+      ],
+      username: "openrelayproject",
+      credential: "openrelayproject",
+    },
   ];
 
   if (!TURN_AUTH_SECRET) {
