@@ -162,6 +162,17 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255,255,255,0.05);
 }
 
+/* === PREVENT iOS AUTO-ZOOM ON FOCUS ===
+   iOS Safari zooms the page when an input with font-size < 16px is focused.
+   Force all form fields to 16px on small screens so typing never zooms. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* === STATUS BADGES === */
 .badge-connected {
   background: rgba(16, 185, 129, 0.12);
