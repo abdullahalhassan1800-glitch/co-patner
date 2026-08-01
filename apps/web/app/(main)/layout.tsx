@@ -1,3 +1,10 @@
+import PushManager from "@/components/PWA/PushManager";
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <PushManager />
+      {children}
+    </>
+  );
 }

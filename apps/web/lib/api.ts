@@ -1,4 +1,5 @@
 import { getServerUrl } from "@/lib/url";
+import { queueOfflineRequest, registerBackgroundSync } from "@/lib/offline-queue";
 
 const API_URL = getServerUrl();
 
@@ -12,6 +13,15 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
+  }).catch(async (err) => {
+    if (typeof window !== "undefined" && !navigator.onLine) {
+      const method = (options.method || "GET").toUpperCase();
+      if (["POST", "PUT", "PATCH"].includes(method) && options.body) {
+        await queueOfflineRequest(`${API_URL}/api${endpoint}`, options);
+        await registerBackgroundSync();
+      }
+    }
+    throw err;
   });
 
   const data = await res.json();
@@ -58,5 +68,12 @@ export const api = {
   report: {
     submit: (reportedId: string, reason: string, description?: string) =>
       fetchApi("/report", { method: "POST", body: JSON.stringify({ reportedId, reason, description }) }),
+  },
+  push: {
+    getVapidKey: () => fetchApi("/push/vapid-key"),
+    subscribe: (data: { subscription: { endpoint?: string; keys?: any }; userAgent: string }) =>
+      fetchApi("/push/subscribe", { method: "POST", body: JSON.stringify(data) }),
+    unsubscribe: (data: { endpoint?: string }) =>
+      fetchApi("/push/unsubscribe", { method: "POST", body: JSON.stringify(data) }),
   },
 };

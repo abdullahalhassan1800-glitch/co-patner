@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import walletRoutes from "./routes/wallet";
 import reportRoutes from "./routes/report";
+import pushRoutes from "./routes/push";
 import { db } from "./utils/db";
 import { setupSocketHandlers } from "./socket/handlers";
 import { initTelegramBot } from "./services/telegram";
@@ -126,6 +127,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/report", reportRoutes);
+app.use("/api/push", pushRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });

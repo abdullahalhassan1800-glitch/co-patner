@@ -7,11 +7,40 @@
   "dir": "ltr",
   "start_url": "/",
   "scope": "/",
-  "display": "standalone",
+  "display": "fullscreen",
+  "display_override": ["window-controls-overlay", "fullscreen", "standalone", "minimal-ui"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "orientation": "portrait",
   "background_color": "#06060A",
   "theme_color": "#06060A",
   "categories": ["social", "entertainment", "lifestyle"],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "scope_extensions": [
+    {
+      "origin": "https://co-patner.onrender.com"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+co-patner",
+      "url": "/chat?invite=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/icons/icon-192.png",

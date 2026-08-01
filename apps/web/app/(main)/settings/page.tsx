@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import PushToggle from "@/components/PWA/PushToggle";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function SettingsPage() {
   return (
     <div className="max-w-lg mx-auto px-4 py-8 pt-24">
       <h1 className="text-2xl font-black mb-8 text-white">Settings</h1>
+      <div className="mb-2">
+        <PushToggle />
+      </div>
       <div className="space-y-2">
         {items.map((item) => (
           <button key={item.label} onClick={() => router.push(item.href)}

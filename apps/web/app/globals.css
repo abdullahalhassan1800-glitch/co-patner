@@ -365,3 +365,22 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 4px;
 }
+
+/* === WINDOW CONTROLS OVERLAY (PWA desktop) === */
+@media (display-mode: window-controls-overlay) {
+  body {
+    padding-top: env(titlebar-area-height, 0px);
+  }
+  header, .app-titlebar {
+    position: sticky;
+    top: env(titlebar-area-height, 0px);
+    left: env(titlebar-area-x, 0px);
+    width: env(titlebar-area-width, 100%);
+  }
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+}

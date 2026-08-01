@@ -1,5 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { db } from "../utils/db";
+import { sendToUser } from "../services/push";
 
 const BOT_NAMES = ["Sophia", "Emma", "Olivia", "Ava", "Mia", "Luna", "Zoe", "Chloe", "Aria", "Lily"];
 const BOT_AVATARS = [
@@ -132,7 +133,19 @@ export function setupSocketHandlers(io: Server) {
       if (!room) return;
       const senderId = onlineUsers.get(socket.id);
       const receiverSocketId = room.user1Socket === socket.id ? room.user2Socket : room.user1Socket;
+      const receiverOnline = io.sockets.sockets.has(receiverSocketId);
       io.to(receiverSocketId).emit("friend_request_received", { fromUserId: senderId, fromSocketId: socket.id });
+      if (!receiverOnline && room.user2Id && senderId) {
+        const receiverUserId = room.user2Socket === receiverSocketId ? room.user2Id : room.user1Id;
+        if (receiverUserId && !receiverUserId.startsWith("bot_")) {
+          sendToUser(receiverUserId, {
+            title: "🤝 New friend request",
+            body: "Someone sent you a friend request",
+            url: "/friends",
+            tag: `friend-${senderId}`,
+          });
+        }
+      }
     });
 
     socket.on("call_request", (data: { toUserId: string; mode: "audio" | "video" }) => {
@@ -149,7 +162,14 @@ export function setupSocketHandlers(io: Server) {
         .map(([sid]) => sid);
       if (targetSocketIds.length === 0) {
         console.log(`📞 call_request: target ${data.toUserId} offline`);
-        return socket.emit("call_rejected", { reason: "User offline" });
+        socket.emit("call_rejected", { reason: "User offline" });
+        sendToUser(data.toUserId, {
+          title: "📞 Incoming call",
+          body: `Someone is calling you${data.mode === "audio" ? " (audio)" : " (video)"}`,
+          url: "/chat",
+          tag: `call-${fromUserId}`,
+        });
+        return;
       }
       console.log(`📞 Sending call_incoming to ${targetSocketIds.length} socket(s): ${targetSocketIds.map(s => s.substring(0,6)).join(", ")}`);
       targetSocketIds.forEach((sid) => {

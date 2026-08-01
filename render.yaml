@@ -15,6 +15,14 @@ services:
         value: https://co-patner.onrender.com
       - key: JWT_SECRET
         generateValue: true
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:admin@co-patner.com
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
       - key: MONGODB_URI
         sync: false
       - key: NEXT_PUBLIC_FIREBASE_API_KEY
