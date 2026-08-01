@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { OnlineUser, getCountryFlag } from "@/lib/data/mockUsers";
 import { deductCredits, RATE_AUDIO, RATE_VIDEO, getCredits } from "@/lib/credits";
+import ScreenshotGuard from "@/components/privacy/ScreenshotGuard";
 
 interface CallOverlayProps {
   user: OnlineUser;
@@ -83,11 +84,12 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex flex-col bg-black">
-      <div className="fixed inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[200px]" />
-        <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
-      </div>
+    <ScreenshotGuard>
+      <div className="fixed inset-0 z-[110] flex flex-col bg-black">
+        <div className="fixed inset-0 pointer-events-none" aria-hidden>
+          <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[200px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
+        </div>
 
       <div className="flex-1 relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center justify-center">
@@ -270,6 +272,7 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ScreenshotGuard>
   );
 }

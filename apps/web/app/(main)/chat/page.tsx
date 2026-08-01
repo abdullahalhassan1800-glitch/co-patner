@@ -15,6 +15,7 @@ import ReportDialog from "@/components/safety/ReportDialog";
 import AgeGate from "@/components/safety/AgeGate";
 import { User, MatchFilters } from "@/types";
 import { api } from "@/lib/api";
+import ScreenshotGuard from "@/components/privacy/ScreenshotGuard";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -142,7 +143,7 @@ export default function ChatPage() {
         {/* Main */}
         <div className="flex-1 flex gap-3 min-h-0">
           {/* Video Section */}
-          <div className="flex-1 flex flex-col gap-3 min-h-0">
+          <ScreenshotGuard message="Video is privacy protected" className="flex-1 flex flex-col gap-3 min-h-0">
             <div className="flex-1 relative min-h-0">
               {/* Remote */}
               <div className="video-box absolute inset-0 bg-surface rounded-2xl">
@@ -196,7 +197,7 @@ export default function ChatPage() {
               </div>
             </div>
             )}
-          </div>
+          </ScreenshotGuard>
 
           {/* Text Chat - desktop */}
           <div className="w-[300px] xl:w-[340px] glass rounded-2xl overflow-hidden shrink-0 hidden md:flex flex-col">
