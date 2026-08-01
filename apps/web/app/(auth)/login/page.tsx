@@ -22,7 +22,11 @@ function getAuthError(err: any): string {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { sendPhoneOTP, verifyPhoneOTP, user } = useAuth();
+  const { sendPhoneOTP, verifyPhoneOTP, loginWithPassword, user } = useAuth();
+  const [mode, setMode] = useState<"password" | "phone">("password");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -63,6 +67,28 @@ export default function LoginPage() {
       setCooldown(60);
     } catch (err: any) {
       setError(getAuthError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordLogin = async () => {
+    const value = identifier.trim();
+    if (!value) {
+      setError("Enter your username or email");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      await loginWithPassword(value, password);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err?.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }
@@ -142,9 +168,109 @@ export default function LoginPage() {
             </span>
           </Link>
 
+          <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-white/[0.04] border border-white/[0.08] rounded-2xl mb-8">
+            <button
+              onClick={() => { setMode("password"); setStep("phone"); setError(""); }}
+              className={`py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${mode === "password" ? "gradient-main text-white shadow-lg shadow-primary/25" : "text-gray-500 hover:text-white"}`}
+            >
+              Password
+            </button>
+            <button
+              onClick={() => { setMode("phone"); setStep("phone"); setError(""); }}
+              className={`py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${mode === "phone" ? "gradient-main text-white shadow-lg shadow-primary/25" : "text-gray-500 hover:text-white"}`}
+            >
+              Phone OTP
+            </button>
+          </div>
+
           <div id="recaptcha-container" className="h-0 w-0 overflow-hidden" />
 
-          {step === "phone" ? (
+          {mode === "password" ? (
+            <>
+              <p className="text-sm font-semibold italic text-gray-400 mb-2">Welcome back</p>
+              <h1 className="text-2xl lg:text-3xl font-black text-white mb-2 leading-tight">
+                Login with <span className="gradient-text">password</span>
+              </h1>
+              <p className="text-sm text-gray-500 mb-8">
+                Use your username or email to log in.
+              </p>
+
+              <div className="max-w-[426px]">
+                {error && (
+                  <div className="bg-accent/10 border border-accent/25 rounded-xl p-3.5 mb-5 text-sm text-accent-light flex items-center gap-2 animate-scale-in">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-2 block">Username or Email</label>
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="yourname or you@example.com"
+                      maxLength={100}
+                      autoComplete="username"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-500 font-semibold mb-2 block">Password</label>
+                    <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 transition-all duration-300">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        maxLength={72}
+                        autoComplete="current-password"
+                        onKeyDown={(e) => { if (e.key === "Enter") handlePasswordLogin(); }}
+                        className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="text-gray-500 hover:text-white transition-colors"
+                        tabIndex={-1}
+                        aria-label="Toggle password visibility"
+                      >
+                        {showPassword ? (
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" /><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                        ) : (
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handlePasswordLogin}
+                    disabled={loading}
+                    className="w-full btn-glow py-3.5 rounded-full text-sm font-bold text-white shadow-xl shadow-primary/25 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Logging in...
+                      </span>
+                    ) : "Login"}
+                  </button>
+
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-primary-light transition-colors">
+                      Forgot password?
+                    </Link>
+                    <button onClick={() => setMode("phone")} className="text-sm text-gray-500 hover:text-primary-light transition-colors">
+                      No password? Use phone OTP
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : step === "phone" ? (
             <>
               <p className="text-sm font-semibold italic text-gray-400 mb-2">No email? No problem.</p>
               <h1 className="text-2xl lg:text-3xl font-black text-white mb-2 leading-tight">

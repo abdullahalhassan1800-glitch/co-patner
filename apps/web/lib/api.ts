@@ -31,8 +31,14 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
 export const api = {
   auth: {
-    login: (email: string, password: string) =>
-      fetchApi("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+    login: (identifier: string, password: string) =>
+      fetchApi("/auth/login", { method: "POST", body: JSON.stringify({ identifier, password }) }),
+    completeAccount: (data: { username: string; password: string; email?: string }) =>
+      fetchApi("/auth/complete-account", { method: "POST", body: JSON.stringify(data) }),
+    forgotPassword: (email: string) =>
+      fetchApi("/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }),
+    resetPassword: (token: string, password: string) =>
+      fetchApi("/auth/reset-password", { method: "POST", body: JSON.stringify({ token, password }) }),
     register: (data: { email: string; password: string; name: string; gender?: string; age?: number }) =>
       fetchApi("/auth/register", { method: "POST", body: JSON.stringify(data) }),
     google: (data: { email: string; name: string; avatar?: string }) =>

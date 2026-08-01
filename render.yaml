@@ -15,6 +15,16 @@ services:
         value: https://co-patner.onrender.com
       - key: JWT_SECRET
         generateValue: true
+      - key: APP_URL
+        value: https://co-patner.onrender.com
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false
       - key: VAPID_PRIVATE_KEY

@@ -1,11 +1,31 @@
 import { Router, Response } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { db } from "../utils/db";
+import { sendPasswordResetEmail } from "../services/email";
 
 const router = Router();
 
 function generateOtp(): string {
   return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function toSafeUser(user: any) {
+  const { password, ...safe } = user as any;
+  safe.id = safe._id || safe.id;
+  return safe;
+}
+
+function isValidUsername(username: string): boolean {
+  return /^[a-zA-Z0-9_]{3,20}$/.test(username);
+}
+
+function authToken(req: any): string | null {
+  const token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token) return null;
+  const decoded = db.verifyToken(token);
+  if (!decoded) return null;
+  return decoded.userId;
 }
 
 router.post("/google", async (req: any, res: Response) => {
@@ -53,18 +73,103 @@ router.post("/register", async (req: any, res: Response) => {
 
 router.post("/login", async (req: any, res: Response) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
-    const user = await db.users.findByEmail(email);
+    const identifier = (req.body.identifier || req.body.email || "").trim();
+    const { password } = req.body;
+    if (!identifier || !password) return res.status(400).json({ error: "Username/email and password required" });
+    const lower = identifier.toLowerCase();
+    const user = lower.includes("@")
+      ? await db.users.findByEmail(lower)
+      : await db.users.findByUsername(lower);
     if (!user || !user.password) return res.status(401).json({ error: "Invalid credentials" });
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
     if (user.isBanned) return res.status(403).json({ error: "Account banned" });
     const token = db.generateToken(user._id);
-    res.json({
-      token,
-      user: { id: user._id, email: user.email, name: user.name, avatar: user.avatar, gender: user.gender, age: user.age, country: user.country, credits: user.credits, isPremium: user.isPremium },
-    });
+    res.json({ token, user: toSafeUser(user) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/complete-account", async (req: any, res: Response) => {
+  try {
+    const userId = authToken(req);
+    if (!userId) return res.status(401).json({ error: "Not authorized" });
+
+    const username = String(req.body.username || "").trim().toLowerCase();
+    const password = String(req.body.password || "");
+    const email = String(req.body.email || "").trim().toLowerCase();
+
+    if (!isValidUsername(username)) {
+      return res.status(400).json({ error: "Username must be 3-20 characters (letters, numbers, underscore)" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email" });
+    }
+
+    const existingUsername = await db.users.findByUsername(username);
+    if (existingUsername && existingUsername._id !== userId) {
+      return res.status(400).json({ error: "Username already taken" });
+    }
+    if (email) {
+      const existingEmail = await db.users.findByEmail(email);
+      if (existingEmail && existingEmail._id !== userId) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const update: any = { username, password: passwordHash };
+    if (email) update.email = email;
+
+    const user = await db.users.update(userId, update);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const token = db.generateToken(user._id);
+    res.json({ token, user: toSafeUser(user) });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/forgot-password", async (req: any, res: Response) => {
+  try {
+    const email = String(req.body.email || "").trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email" });
+    }
+    const user = await db.users.findByEmail(email);
+    if (user && user.email && user.email !== "") {
+      const token = crypto.randomBytes(32).toString("hex");
+      db.resetTokens.set(token, user._id);
+      const { delivered, debugUrl } = await sendPasswordResetEmail(email, token);
+      if (!delivered && !debugUrl) {
+        return res.status(500).json({ error: "Could not send reset email. Try again later." });
+      }
+    }
+    res.json({ success: true, message: "If that email is registered, a reset link has been sent." });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post("/reset-password", async (req: any, res: Response) => {
+  try {
+    const token = String(req.body.token || "");
+    const password = String(req.body.password || "");
+    if (!token) return res.status(400).json({ error: "Reset token required" });
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    const userId = db.resetTokens.get(token);
+    if (!userId) return res.status(400).json({ error: "Reset link is invalid or expired" });
+    const passwordHash = await bcrypt.hash(password, 10);
+    await db.users.update(userId, { password: passwordHash });
+    db.resetTokens.delete(token);
+    res.json({ success: true, message: "Password updated. You can now log in." });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

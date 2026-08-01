@@ -18,6 +18,8 @@ interface AuthContextType {
   loading: boolean;
   sendPhoneOTP: (phoneNumber: string) => Promise<void>;
   verifyPhoneOTP: (otp: string) => Promise<void>;
+  loginWithPassword: (identifier: string, password: string) => Promise<void>;
+  completeAccount: (data: { username: string; password: string; email?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -136,8 +138,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  const persistSession = (data: { token: string; user: any }) => {
+    localStorage.setItem("co_patner_token", data.token);
+    localStorage.setItem("co_patner_user", JSON.stringify({ ...data.user, id: data.user._id || data.user.id }));
+    if (data.user.credits != null) {
+      localStorage.setItem("co_patner_credits", String(data.user.credits));
+    }
+    setUser({
+      uid: data.user._id || data.user.id,
+      email: data.user.email,
+      phoneNumber: data.user.phone,
+      displayName: data.user.name,
+      username: data.user.username,
+    } as any);
+    setLoading(false);
+  };
+
+  const loginWithPassword = async (identifier: string, password: string) => {
+    const data = await api.auth.login(identifier, password);
+    persistSession(data);
+  };
+
+  const completeAccount = async (data: { username: string; password: string; email?: string }) => {
+    const result = await api.auth.completeAccount(data);
+    persistSession(result);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, sendPhoneOTP, verifyPhoneOTP, signOut }}>
+    <AuthContext.Provider value={{ user, loading, sendPhoneOTP, verifyPhoneOTP, loginWithPassword, completeAccount, signOut }}>
       {children}
     </AuthContext.Provider>
   );

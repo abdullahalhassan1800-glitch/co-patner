@@ -13,6 +13,10 @@ export default function OnboardingGuard({ children }: { children: React.ReactNod
       if (!token || !stored) return;
       if (localStorage.getItem("co_patner_onboarded") === "1") return;
       const u = JSON.parse(stored);
+      if (!u.username) {
+        router.replace("/setup-account");
+        return;
+      }
       const needsOnboarding =
         !u.name ||
         u.name === "User" ||

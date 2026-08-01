@@ -19,6 +19,7 @@ const waitingQueue: any[] = [];
 const rooms = new Map<string, any>();
 const clientRooms = new Map<string, string>();
 const otpStore = new Map<string, { otp: string; expiresAt: number }>();
+const resetTokenStore = new Map<string, { userId: string; expiresAt: number }>();
 
 export const db = {
   users: {
@@ -38,6 +39,11 @@ export const db = {
     async findByPhone(phone: string) {
       if (!phone) return undefined;
       const user = await User.findOne({ phone }).lean();
+      return serialize(user) || undefined;
+    },
+    async findByUsername(username: string) {
+      if (!username) return undefined;
+      const user = await User.findOne({ username: username.toLowerCase() }).lean();
       return serialize(user) || undefined;
     },
     async findById(id: string) {
@@ -155,6 +161,24 @@ export const db = {
       for (const [phone, entry] of otpStore.entries()) {
         if (Date.now() > entry.expiresAt) otpStore.delete(phone);
       }
+    },
+  },
+
+  resetTokens: {
+    set(token: string, userId: string): void {
+      resetTokenStore.set(token, { userId, expiresAt: Date.now() + 30 * 60 * 1000 });
+    },
+    get(token: string): string | undefined {
+      const entry = resetTokenStore.get(token);
+      if (!entry) return undefined;
+      if (Date.now() > entry.expiresAt) {
+        resetTokenStore.delete(token);
+        return undefined;
+      }
+      return entry.userId;
+    },
+    delete(token: string): void {
+      resetTokenStore.delete(token);
     },
   },
 };

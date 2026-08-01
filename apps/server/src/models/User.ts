@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 export interface IUser {
   _id: string;
+  username: string;
   email: string;
   phone: string;
   password?: string;
@@ -22,6 +23,7 @@ export interface IUser {
 const UserSchema = new Schema<IUser>(
   {
     _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+    username: { type: String, default: "" },
     email: { type: String, default: "" },
     phone: { type: String, default: "" },
     password: { type: String },

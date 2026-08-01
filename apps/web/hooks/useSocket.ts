@@ -18,7 +18,7 @@ export function useSocket(userId: string | undefined) {
     if (socket.connected) {
       setIsConnected(true);
       socket.emit("register", userId);
-      lastSocketIdRef.current = socket.id;
+      lastSocketIdRef.current = socket.id ?? null;
     }
 
     const onConnect = () => {
