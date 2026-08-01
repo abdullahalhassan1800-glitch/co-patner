@@ -189,7 +189,9 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div id="recaptcha-container" className="h-0 w-0 overflow-hidden" />
+          {mode === "phone" && (
+            <div id="recaptcha-container" className="flex justify-center mb-5" />
+          )}
 
           {mode === "password" ? (
             <>

@@ -86,12 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const sendPhoneOTP = async (phoneNumber: string) => {
     if (!auth) throw new Error("Firebase not available");
-    if (recaptchaRef.current) {
-      recaptchaRef.current.clear();
-      recaptchaRef.current = null;
-    }
+    try { recaptchaRef.current?.clear(); } catch {}
+    recaptchaRef.current = null;
     recaptchaRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
+      size: "normal",
       callback: () => {},
       "expired-callback": () => {},
     });
@@ -108,20 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const phone = cred.user.phoneNumber || "";
 
     const data = await api.auth.phoneSignIn({ phone, name: "User" });
+    persistSession(data);
 
-    localStorage.setItem("co_patner_token", data.token);
-    localStorage.setItem("co_patner_user", JSON.stringify({ ...data.user, id: data.user._id || data.user.id }));
-    if (data.user.credits != null) {
-      localStorage.setItem("co_patner_credits", String(data.user.credits));
-    }
-
-    setUser({ uid: data.user._id || data.user.id, phoneNumber: phone, displayName: data.user.name } as any);
-    setLoading(false);
-
-    if (recaptchaRef.current) {
-      recaptchaRef.current.clear();
-      recaptchaRef.current = null;
-    }
+    try { recaptchaRef.current?.clear(); } catch {}
+    recaptchaRef.current = null;
   };
 
   const signOut = async () => {
@@ -131,10 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("co_patner_user");
     syncedRef.current = null;
     confirmationRef.current = null;
-    if (recaptchaRef.current) {
-      recaptchaRef.current.clear();
-      recaptchaRef.current = null;
-    }
+    try { recaptchaRef.current?.clear(); } catch {}
+    recaptchaRef.current = null;
     setUser(null);
   };
 
