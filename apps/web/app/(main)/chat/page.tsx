@@ -90,7 +90,7 @@ export default function ChatPage() {
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative max-w-[1440px] mx-auto px-4 py-4 h-screen flex flex-col pt-[84px]">
+      <div className="relative max-w-[1440px] mx-auto px-4 py-4 h-[100dvh] flex flex-col pt-[76px]">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 shrink-0">
           <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export default function ChatPage() {
               </div>
 
               {/* Local PiP - corner overlay */}
-              <div className="absolute bottom-4 right-4 z-20 w-28 h-40 sm:w-36 sm:h-52 rounded-2xl overflow-hidden border-2 border-white/15 shadow-2xl shadow-black/50 bg-surface-dark">
+              <div className="absolute bottom-4 right-4 z-30 w-28 h-40 sm:w-36 sm:h-52 rounded-2xl overflow-hidden border-2 border-white/15 shadow-2xl shadow-black/50 bg-surface-dark">
                 <LocalVideo stream={localStream} isCamOn={isCamOn} />
               </div>
             </div>

@@ -132,7 +132,7 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
         </div>
 
         {mode === "video" && !isVideoOff && localStream && (
-          <div className="absolute top-5 right-5 w-28 h-40 rounded-2xl overflow-hidden border border-white/10 shadow-2xl z-10 bg-[#0a0a14]">
+          <div className="absolute bottom-36 right-5 w-28 h-40 rounded-2xl overflow-hidden border border-white/10 shadow-2xl z-30 bg-[#0a0a14]">
             <video
               ref={localVideoRef}
               autoPlay
@@ -141,6 +141,7 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
               className="w-full h-full object-cover"
               style={{ transform: "scaleX(-1)" }}
             />
+            <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/50 text-[10px] font-semibold text-white/80">You</span>
           </div>
         )}
 
