@@ -96,11 +96,16 @@ export default function LoginPage() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d?$/.test(value)) return;
+    if (loading) return;
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
     if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
+    }
+    if (value && index === 5 && newOtp.join("").length === 6) {
+      otpRefs.current[index]?.blur();
+      handleVerify(newOtp.join(""));
     }
   };
 
@@ -110,16 +115,17 @@ export default function LoginPage() {
     }
   };
 
-  const handleVerify = async () => {
-    const code = otp.join("");
-    if (code.length !== 6) {
+  const handleVerify = async (code?: string) => {
+    if (loading) return;
+    const finalCode = code ?? otp.join("");
+    if (finalCode.length !== 6) {
       setError("Please enter the complete 6-digit OTP");
       return;
     }
     setError("");
     setLoading(true);
     try {
-      await verifyPhoneOTP(code);
+      await verifyPhoneOTP(finalCode);
       router.push("/dashboard");
     } catch (err: any) {
       setError(getAuthError(err));
@@ -213,7 +219,7 @@ export default function LoginPage() {
                       placeholder="yourname or you@example.com"
                       maxLength={100}
                       autoComplete="username"
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
+                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                     />
                   </div>
 
@@ -228,7 +234,7 @@ export default function LoginPage() {
                         maxLength={72}
                         autoComplete="current-password"
                         onKeyDown={(e) => { if (e.key === "Enter") handlePasswordLogin(); }}
-                        className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none"
+                        className="flex-1 bg-transparent text-base text-white placeholder-gray-500 focus:outline-none"
                       />
                       <button
                         type="button"
@@ -302,7 +308,7 @@ export default function LoginPage() {
                         onChange={(e) => setPhone(formatPhone(e.target.value))}
                         placeholder="98765 43210"
                         maxLength={12}
-                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
+                        className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-gray-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                         onKeyDown={(e) => { if (e.key === "Enter") handleSendOTP(); }}
                       />
                     </div>
@@ -360,14 +366,16 @@ export default function LoginPage() {
                         value={digit}
                         onChange={(e) => handleOtpChange(i, e.target.value)}
                         onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                        autoFocus={i === 0}
+                        disabled={loading}
                         maxLength={1}
-                        className="w-12 h-14 text-center text-lg font-bold text-white bg-white/[0.04] border border-white/[0.08] rounded-xl focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300"
+                        className="w-12 h-14 text-center text-lg font-bold text-white bg-white/[0.04] border border-white/[0.08] rounded-xl focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all duration-300 disabled:opacity-40"
                       />
                     ))}
                   </div>
 
                   <button
-                    onClick={handleVerify}
+                    onClick={() => handleVerify()}
                     disabled={loading || otp.join("").length !== 6}
                     className="w-full btn-glow py-3.5 rounded-full text-sm font-bold text-white shadow-xl shadow-primary/25 disabled:opacity-40 disabled:cursor-not-allowed mt-4"
                   >
