@@ -292,6 +292,13 @@ export function useCallSocket(userId: string | undefined) {
 
   const initiateCall = useCallback(async (toUserId: string, mode: "audio" | "video") => {
     const socket = getSocket();
+    if (!socket.connected) {
+      setCallError("Connection lost. Please refresh and try again.");
+      setCallRejected(true);
+      setCallAccepted(false);
+      setCallEnded(false);
+      return;
+    }
     isCallerRef.current = true;
     incomingCallModeRef.current = mode;
     socket.emit("call_request", { toUserId, mode });

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 import RegisterSW from "@/components/PWA/RegisterSW";
+import KeepAlive from "@/components/PWA/KeepAlive";
 import { AuthProvider } from "@/lib/auth-context";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main>{children}</main>
         </AuthProvider>
         <RegisterSW />
+        <KeepAlive />
       </body>
     </html>
   );

@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [callCost, setCallCost] = useState(0);
   const [viewProfile, setViewProfile] = useState<OnlineUser | null>(null);
   const [serverUserId, setServerUserId] = useState<string | undefined>(undefined);
+  const [callToast, setCallToast] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -123,11 +124,19 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (callRejected && callState === "ringing") {
+      const msg = callError || "Call could not be connected. Please try again.";
+      setCallToast(msg);
       setCallState("idle");
       setSelectedUser(null);
       resetCallState();
     }
-  }, [callRejected, callState, resetCallState]);
+  }, [callRejected, callState, callError, resetCallState]);
+
+  useEffect(() => {
+    if (!callToast) return;
+    const t = setTimeout(() => setCallToast(null), 5000);
+    return () => clearTimeout(t);
+  }, [callToast]);
 
   useEffect(() => {
     if (callEnded && callState === "active") {
@@ -327,6 +336,15 @@ export default function DashboardPage() {
       {callError && (callState === "ringing" || callState === "active") && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[120] glass px-5 py-3 rounded-2xl border border-accent/20 shadow-lg">
           <p className="text-accent-light text-sm font-medium">{callError}</p>
+        </div>
+      )}
+
+      {callToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[130] glass px-5 py-3 rounded-2xl border border-accent/30 shadow-2xl animate-scale-in">
+          <p className="text-accent-light text-sm font-semibold flex items-center gap-2">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+            {callToast}
+          </p>
         </div>
       )}
 
