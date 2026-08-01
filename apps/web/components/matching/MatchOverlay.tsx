@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 interface MatchOverlayProps {
   state: "searching" | "connecting";
   partnerName?: string;
+  partnerAvatar?: string;
 }
 
-export default function MatchOverlay({ state, partnerName }: MatchOverlayProps) {
+export default function MatchOverlay({ state, partnerName, partnerAvatar }: MatchOverlayProps) {
   const [dots, setDots] = useState("");
 
   useEffect(() => {
@@ -21,9 +22,20 @@ export default function MatchOverlay({ state, partnerName }: MatchOverlayProps) 
     return (
       <div className="absolute inset-0 z-20 flex items-center justify-center bg-surface-dark/90 backdrop-blur-sm animate-fade-in rounded-2xl">
         <div className="text-center animate-scale-in">
-          <div className="w-20 h-20 rounded-3xl gradient-glow flex items-center justify-center mx-auto mb-5 shadow-2xl shadow-primary/30 animate-float">
-            <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-          </div>
+          {partnerAvatar && partnerAvatar !== "/default-avatar.png" ? (
+            <div className="relative w-24 h-24 mx-auto mb-5">
+              <div className="absolute inset-0 rounded-3xl border-2 border-primary/20 animate-pulse-ring" />
+              <img
+                src={partnerAvatar}
+                alt={partnerName || "partner"}
+                className="relative w-24 h-24 rounded-3xl object-cover ring-2 ring-primary/30 shadow-2xl shadow-primary/30"
+              />
+            </div>
+          ) : (
+            <div className="w-20 h-20 rounded-3xl gradient-glow flex items-center justify-center mx-auto mb-5 shadow-2xl shadow-primary/30 animate-float">
+              <svg className="w-9 h-9 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            </div>
+          )}
           <p className="text-2xl font-black text-white mb-2">Connected!</p>
           <p className="text-gray-400 text-sm">Chatting with {partnerName || "someone"}</p>
         </div>

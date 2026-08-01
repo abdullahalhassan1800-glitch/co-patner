@@ -2,9 +2,10 @@
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import { getSocket } from "@/lib/socket";
+import { api } from "@/lib/api";
 import { Room, Partner, ChatMessage, ConnectionState } from "@/types";
 
-const ICE_SERVERS: RTCConfiguration = {
+const DEFAULT_ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun1.l.google.com:19302" },
@@ -18,6 +19,8 @@ export function useWebRTC(userId: string | undefined) {
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const iceServersRef = useRef<RTCConfiguration>(DEFAULT_ICE_SERVERS);
+  const roomRef = useRef<Room | null>(null);
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("idle");
   const [room, setRoom] = useState<Room | null>(null);
@@ -25,13 +28,30 @@ export function useWebRTC(userId: string | undefined) {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    api.turn
+      .getCredentials()
+      .then((data) => {
+        if (data.iceServers && data.iceServers.length) {
+          iceServersRef.current = { iceServers: data.iceServers };
+        }
+      })
+      .catch(() => {});
+  }, [userId]);
+
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
 
   const createPeerConnection = useCallback((role: "caller" | "callee", localStream: MediaStream) => {
     if (peerRef.current) {
       peerRef.current.close();
     }
 
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+    const pc = new RTCPeerConnection(iceServersRef.current);
     peerRef.current = pc;
 
     localStream.getTracks().forEach((track) => {
@@ -48,10 +68,10 @@ export function useWebRTC(userId: string | undefined) {
     };
 
     pc.onicecandidate = (event) => {
-      if (event.candidate && room) {
+      if (event.candidate && roomRef.current) {
         getSocket().emit("ice_candidate", {
           candidate: { candidate: event.candidate.candidate, sdpMid: event.candidate.sdpMid, sdpMLineIndex: event.candidate.sdpMLineIndex },
-          roomId: room.roomId,
+          roomId: roomRef.current.roomId,
         });
       }
     };
@@ -60,18 +80,23 @@ export function useWebRTC(userId: string | undefined) {
       const state = pc.connectionState;
       if (state === "connected") {
         setConnectionState("connected");
+        setError(null);
       } else if (state === "disconnected" || state === "failed") {
         setConnectionState("disconnected");
+        if (state === "failed") {
+          setError("Connection failed - check firewall/antivirus or try again");
+        }
       }
     };
 
     return pc;
-  }, [room]);
+  }, []);
 
   const startChat = useCallback(
     async (localStream: MediaStream) => {
       localStreamRef.current = localStream;
       setConnectionState("searching");
+      setError(null);
 
       getSocket().emit("join_queue", {
         userId,
@@ -169,7 +194,7 @@ export function useWebRTC(userId: string | undefined) {
           await peerRef.current.setLocalDescription(answer);
           socket.emit("webrtc_answer", {
             answer: { type: answer.type, sdp: answer.sdp },
-            roomId: room?.roomId,
+            roomId: roomRef.current?.roomId,
           });
         } catch (err) {
           console.error("Error handling offer:", err);
@@ -232,7 +257,7 @@ export function useWebRTC(userId: string | undefined) {
       socket.off("partner_typing");
       socket.off("partner_stop_typing");
     };
-  }, [createPeerConnection, cleanup, room?.roomId]);
+  }, [createPeerConnection, cleanup]);
 
   return {
     connectionState,
@@ -241,6 +266,7 @@ export function useWebRTC(userId: string | undefined) {
     remoteStream,
     messages,
     isPartnerTyping,
+    error,
     startChat,
     skipPartner,
     cleanup,

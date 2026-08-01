@@ -14,6 +14,7 @@ import userRoutes from "./routes/user";
 import walletRoutes from "./routes/wallet";
 import reportRoutes from "./routes/report";
 import pushRoutes from "./routes/push";
+import turnRoutes from "./routes/turn";
 import { db } from "./utils/db";
 import { setupSocketHandlers } from "./socket/handlers";
 import { initTelegramBot } from "./services/telegram";
@@ -128,6 +129,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/push", pushRoutes);
+app.use("/api/turn", turnRoutes);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: Date.now() });

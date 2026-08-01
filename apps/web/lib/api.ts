@@ -76,4 +76,8 @@ export const api = {
     unsubscribe: (data: { endpoint?: string }) =>
       fetchApi("/push/unsubscribe", { method: "POST", body: JSON.stringify(data) }),
   },
+  turn: {
+    getCredentials: (): Promise<{ iceServers: RTCIceServer[]; turnConfigured: boolean }> =>
+      fetchApi("/turn/credentials"),
+  },
 };

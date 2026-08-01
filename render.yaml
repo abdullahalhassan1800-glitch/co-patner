@@ -21,6 +21,8 @@ services:
         sync: false
       - key: VAPID_SUBJECT
         value: mailto:admin@co-patner.com
+      - key: TURN_AUTH_SECRET
+        sync: false
       - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
         sync: false
       - key: MONGODB_URI

@@ -27,7 +27,7 @@ export default function ChatPage() {
   const { localStream, isMicOn, isCamOn, error: mediaError, startMedia, stopMedia, toggleMic, toggleCam } = useMedia();
   const {
     connectionState, partner, remoteStream, messages, isPartnerTyping,
-    startChat, skipPartner, sendMessage, sendTyping, sendStopTyping, setConnectionState,
+    error, startChat, skipPartner, sendMessage, sendTyping, sendStopTyping, setConnectionState,
   } = useWebRTC(user?.id);
 
   useSocket(user?.id);
@@ -54,6 +54,11 @@ export default function ChatPage() {
     stopMedia();
     setConnectionState("idle");
   }, [stopMedia, setConnectionState]);
+
+  const handleRetry = useCallback(() => {
+    handleStop();
+    setTimeout(() => handleStart(), 300);
+  }, [handleStop, handleStart]);
 
   const handleFilterApply = (filters: MatchFilters) => {
     handleStop();
@@ -88,6 +93,13 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 shrink-0">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/dashboard")}
+              title="Back to dashboard"
+              className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/[0.08] transition-all duration-300 active:scale-90"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
+            </button>
             <h1 className="text-base font-bold text-white">Video Chat</h1>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${stateLabel.cls}`}>
               {connectionState === "connected" && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
@@ -115,6 +127,18 @@ export default function ChatPage() {
           </div>
         )}
 
+        {error && connectionState !== "idle" && connectionState !== "connected" && (
+          <div className="bg-accent/10 border border-accent/25 rounded-2xl p-4 mb-3 text-sm text-accent-light animate-scale-in flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+              {error}
+            </div>
+            <button onClick={handleRetry} className="shrink-0 px-4 py-2 rounded-xl bg-accent/20 hover:bg-accent/30 text-accent-light text-xs font-bold transition-colors">
+              Try Again
+            </button>
+          </div>
+        )}
+
         {/* Main */}
         <div className="flex-1 flex gap-3 min-h-0">
           {/* Video Section */}
@@ -124,7 +148,23 @@ export default function ChatPage() {
               <div className="video-box absolute inset-0 bg-surface rounded-2xl">
                 <RemoteVideo stream={remoteStream} partner={partner} />
                 {(connectionState === "searching" || connectionState === "connecting") && (
-                  <MatchOverlay state={connectionState} partnerName={partner?.name} />
+                  <MatchOverlay state={connectionState} partnerName={partner?.name} partnerAvatar={partner?.avatar} />
+                )}
+                {connectionState === "idle" && !localStream && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface rounded-2xl">
+                    <div className="text-center animate-slide-up px-6">
+                      <div className="w-28 h-28 rounded-[2rem] gradient-glow flex items-center justify-center mx-auto mb-6 animate-float shadow-2xl shadow-primary/30">
+                        <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
+                      </div>
+                      <h2 className="text-2xl font-black mb-2 text-white">Ready to Chat?</h2>
+                      <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">
+                        Click below to start random video chat with strangers worldwide
+                      </p>
+                      <button onClick={handleStart} className="btn-glow px-10 py-4 rounded-2xl text-base font-bold text-white shadow-2xl shadow-primary/30">
+                        Start Video Chat
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -135,6 +175,7 @@ export default function ChatPage() {
             </div>
 
             {/* Controls */}
+            {connectionState !== "idle" && (
             <div className="glass rounded-2xl shrink-0">
               <div className="flex items-center gap-1.5 pl-2">
                 <div className="flex-1 min-w-0">
@@ -154,6 +195,7 @@ export default function ChatPage() {
                 </button>
               </div>
             </div>
+            )}
           </div>
 
           {/* Text Chat - desktop */}
@@ -206,23 +248,6 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Idle overlay */}
-        {connectionState === "idle" && !localStream && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 pt-[84px]">
-            <div className="text-center animate-slide-up">
-              <div className="w-32 h-32 rounded-[2rem] gradient-glow flex items-center justify-center mx-auto mb-8 animate-float shadow-2xl shadow-primary/30">
-                <svg className="w-14 h-14 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
-              </div>
-              <h2 className="text-3xl font-black mb-3 text-white">Ready to Chat?</h2>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                Click below to start random video chat with strangers worldwide
-              </p>
-              <button onClick={handleStart} className="btn-glow px-12 py-5 rounded-2xl text-lg font-bold text-white shadow-2xl shadow-primary/30">
-                Start Video Chat
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       <FilterPanel isOpen={showFilters} onClose={() => setShowFilters(false)} onApply={handleFilterApply} />

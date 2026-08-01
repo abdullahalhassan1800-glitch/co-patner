@@ -2,8 +2,9 @@
 
 import { useEffect, useCallback, useRef, useState } from "react";
 import { getSocket } from "@/lib/socket";
+import { api } from "@/lib/api";
 
-  const ICE_SERVERS: RTCConfiguration = {
+  const DEFAULT_ICE_SERVERS: RTCConfiguration = {
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       { urls: "stun:stun1.l.google.com:19302" },
@@ -35,6 +36,19 @@ export function useCallSocket(userId: string | undefined) {
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const mediaReadyRef = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const iceServersRef = useRef<RTCConfiguration>(DEFAULT_ICE_SERVERS);
+
+  useEffect(() => {
+    if (!userId) return;
+    api.turn
+      .getCredentials()
+      .then((data) => {
+        if (data.iceServers && data.iceServers.length) {
+          iceServersRef.current = { iceServers: data.iceServers };
+        }
+      })
+      .catch(() => {});
+  }, [userId]);
 
   const acquireMedia = useCallback(async (mode: "audio" | "video"): Promise<MediaStream | null> => {
     try {
@@ -79,7 +93,7 @@ export function useCallSocket(userId: string | undefined) {
       peerRef.current.close();
     }
 
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+    const pc = new RTCPeerConnection(iceServersRef.current);
     peerRef.current = pc;
 
     stream.getTracks().forEach((track) => {

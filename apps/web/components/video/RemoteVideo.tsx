@@ -27,10 +27,24 @@ export default function RemoteVideo({ stream, partner }: RemoteVideoProps) {
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-surface-dark">
           <div className="text-center">
-            <div className="w-24 h-24 rounded-3xl gradient-glow flex items-center justify-center text-4xl font-black text-white mx-auto mb-4 shadow-2xl shadow-primary/15">
-              {partner?.name?.charAt(0) || "?"}
+            {partner?.avatar && partner.avatar !== "/default-avatar.png" ? (
+              <img
+                src={partner.avatar}
+                alt={partner.name || "partner"}
+                className="w-28 h-28 rounded-3xl object-cover ring-2 ring-primary/30 shadow-2xl shadow-primary/20 mx-auto mb-5"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-3xl gradient-glow flex items-center justify-center text-4xl font-black text-white mx-auto mb-5 shadow-2xl shadow-primary/15">
+                {partner?.name?.charAt(0) || "?"}
+              </div>
+            )}
+            <div className="flex items-center justify-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              </span>
+              <p className="text-gray-400 text-xs font-medium">Connecting...</p>
             </div>
-            <p className="text-gray-500 text-xs font-medium">Waiting for video...</p>
           </div>
         </div>
       )}
