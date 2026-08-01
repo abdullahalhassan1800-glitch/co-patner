@@ -10,13 +10,26 @@ interface CallSummaryProps {
   duration: number;
   cost: number;
   onDone: () => void;
-  onAddFriend: () => void;
+  onAddFriend: () => Promise<void> | void;
   onReport: () => void;
 }
 
 export default function CallSummary({ user, mode, duration, cost, onDone, onAddFriend, onReport }: CallSummaryProps) {
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
+  const [addingFriend, setAddingFriend] = useState(false);
+  const [friendAdded, setFriendAdded] = useState(false);
+
+  const handleAddFriend = async () => {
+    if (friendAdded || addingFriend) return;
+    setAddingFriend(true);
+    try {
+      await onAddFriend();
+      setFriendAdded(true);
+    } catch {} finally {
+      setAddingFriend(false);
+    }
+  };
 
   const formatTime = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
@@ -86,10 +99,15 @@ export default function CallSummary({ user, mode, duration, cost, onDone, onAddF
           {/* Actions */}
           <div className="space-y-2.5">
             <button
-              onClick={onAddFriend}
-              className="w-full py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary-light text-sm font-bold hover:bg-primary/20 hover:border-primary/40 transition-all duration-300 active:scale-[0.98]"
+              onClick={handleAddFriend}
+              disabled={addingFriend}
+              className={`w-full py-3 rounded-2xl text-sm font-bold transition-all duration-300 active:scale-[0.98] ${
+                friendAdded
+                  ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
+                  : "bg-primary/10 border border-primary/20 text-primary-light hover:bg-primary/20 hover:border-primary/40"
+              }`}
             >
-              Add as Friend
+              {friendAdded ? "Friend Added ✓" : addingFriend ? "Adding..." : "Add as Friend"}
             </button>
             <button
               onClick={onReport}

@@ -16,6 +16,7 @@ import { deductCredits, RATE_AUDIO, RATE_VIDEO, hasEnoughCredits } from "@/lib/c
 import { useSocket } from "@/hooks/useSocket";
 import { useCallSocket } from "@/hooks/useCallSocket";
 import { getServerUrl } from "@/lib/url";
+import { api } from "@/lib/api";
 
 type CallState = "idle" | "connect-modal" | "text-chat" | "ringing" | "incoming" | "active" | "summary";
 
@@ -235,6 +236,11 @@ export default function DashboardPage() {
     resetCallState();
   }, [resetCallState]);
 
+  const handleAddFriend = useCallback(async () => {
+    if (!selectedUser) return;
+    await api.user.addFriend(selectedUser.id);
+  }, [selectedUser]);
+
   return (
     <div className="min-h-screen bg-[#06060A] relative">
       <div className="fixed inset-0 pointer-events-none" aria-hidden>
@@ -337,7 +343,7 @@ export default function DashboardPage() {
       )}
 
       {callState === "summary" && selectedUser && (
-        <CallSummary user={selectedUser} mode={callMode} duration={callDuration} cost={callCost} onDone={handleSummaryDone} onAddFriend={handleSummaryDone} onReport={handleSummaryDone} />
+        <CallSummary user={selectedUser} mode={callMode} duration={callDuration} cost={callCost} onDone={handleSummaryDone} onAddFriend={handleAddFriend} onReport={handleSummaryDone} />
       )}
     </div>
   );

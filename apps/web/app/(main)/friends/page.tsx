@@ -15,6 +15,17 @@ export default function FriendsPage() {
     loadFriends();
   }, [router]);
 
+  useEffect(() => {
+    const onFocus = () => loadFriends();
+    const onVisible = () => { if (!document.hidden) loadFriends(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
   const loadFriends = async () => {
     try { const data = await api.user.getFriends(); setFriends(data.friends); } catch {}
   };
