@@ -142,7 +142,7 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <div id="recaptcha-container" className="flex justify-center my-3" />
+          <div id="recaptcha-container" className="h-0 w-0 overflow-hidden" />
 
           {step === "phone" ? (
             <>

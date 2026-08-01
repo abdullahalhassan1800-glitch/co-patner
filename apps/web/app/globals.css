@@ -384,3 +384,8 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-app-region: no-drag;
   }
 }
+
+/* === RECAPTCHA (invisible) === */
+.grecaptcha-badge {
+  visibility: hidden;
+}

@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       recaptchaRef.current = null;
     }
     recaptchaRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "normal",
+      size: "invisible",
       callback: () => {},
       "expired-callback": () => {},
     });
