@@ -17,6 +17,9 @@
   },
   "description": "",
   "main": "gen-cert.js",
+  "engines": {
+    "node": "20.x"
+  },
   "dependencies": {
     "ansi-regex": "^5.0.1",
     "ansi-styles": "^4.3.0",
