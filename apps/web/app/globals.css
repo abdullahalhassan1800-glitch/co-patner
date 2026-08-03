@@ -401,6 +401,40 @@ h1, h2, h3, h4, h5, h6 {
   visibility: hidden;
 }
 
+/* === VIDEO WATERMARK (leak trace) === */
+@keyframes watermarkDrift {
+  0%, 100% { left: 4%; top: 12%; }
+  25% { left: 68%; top: 78%; }
+  50% { left: 10%; top: 85%; }
+  75% { left: 72%; top: 8%; }
+}
+@keyframes watermarkPulse {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 0.45; }
+}
+.video-watermark {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  animation: watermarkDrift 26s ease-in-out infinite, watermarkPulse 6s ease-in-out infinite;
+}
+
 /* === SCREENSHOT GUARD (call privacy) === */
 .screenshot-guard {
   user-select: none;

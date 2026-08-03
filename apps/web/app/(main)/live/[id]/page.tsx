@@ -8,6 +8,7 @@ import LiveActionBar from "@/components/live/LiveActionBar";
 import { generateMockUsers, OnlineUser } from "@/lib/data/mockUsers";
 import { useAuth } from "@/lib/auth-context";
 import { hasEnoughCredits, RATE_AUDIO, RATE_VIDEO } from "@/lib/credits";
+import ScreenshotGuard from "@/components/privacy/ScreenshotGuard";
 
 export default function LivePage() {
   const router = useRouter();
@@ -83,28 +84,30 @@ export default function LivePage() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 pointer-events-none" aria-hidden>
-        <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[200px]" />
-        <div className="absolute bottom-1/4 right-1/3 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
+    <ScreenshotGuard message="Live stream is privacy protected">
+      <div className="min-h-screen bg-black relative overflow-hidden">
+        {/* Ambient orbs */}
+        <div className="fixed inset-0 pointer-events-none" aria-hidden>
+          <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-primary/[0.04] rounded-full blur-[200px]" />
+          <div className="absolute bottom-1/4 right-1/3 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
+        </div>
+
+        {/* Full-screen player */}
+        <div className="absolute inset-0">
+          <LivePlayer avatar={host.avatar} name={host.name} isLive={host.isOnline} />
+        </div>
+
+        {/* Host info overlay */}
+        <LiveHostInfo user={host} viewerCount={viewerCount} liveDuration={liveDuration} />
+
+        {/* Action bar */}
+        <LiveActionBar
+          onBack={handleBack}
+          onChatFree={handleChatFree}
+          onAudioCall={handleAudioCall}
+          onVideoCall={handleVideoCall}
+        />
       </div>
-
-      {/* Full-screen player */}
-      <div className="absolute inset-0">
-        <LivePlayer avatar={host.avatar} name={host.name} isLive={host.isOnline} />
-      </div>
-
-      {/* Host info overlay */}
-      <LiveHostInfo user={host} viewerCount={viewerCount} liveDuration={liveDuration} />
-
-      {/* Action bar */}
-      <LiveActionBar
-        onBack={handleBack}
-        onChatFree={handleChatFree}
-        onAudioCall={handleAudioCall}
-        onVideoCall={handleVideoCall}
-      />
-    </div>
+    </ScreenshotGuard>
   );
 }

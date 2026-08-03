@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import VideoWatermark from "@/components/privacy/VideoWatermark";
 
 interface LivePlayerProps {
   avatar: string;
@@ -21,6 +22,7 @@ export default function LivePlayer({ avatar, name, isLive }: LivePlayerProps) {
         }`}
       />
 
+      <VideoWatermark />
       {!revealed && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
           <button

@@ -17,14 +17,26 @@ export default function ScreenshotGuard({ children, message = "Privacy Protected
     const onVisibilityChange = () => setHidden(document.visibilityState === "hidden");
     const onBlur = () => setHidden(true);
     const onFocus = () => setHidden(false);
+    const onPageHide = () => setHidden(true);
+    const onFreeze = () => setHidden(true);
+    const onBeforePrint = () => setHidden(true);
+    const onAfterPrint = () => setHidden(false);
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", onFocus);
+    document.addEventListener("pagehide", onPageHide);
+    document.addEventListener("freeze", onFreeze);
+    window.addEventListener("beforeprint", onBeforePrint);
+    window.addEventListener("afterprint", onAfterPrint);
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("pagehide", onPageHide);
+      document.removeEventListener("freeze", onFreeze);
+      window.removeEventListener("beforeprint", onBeforePrint);
+      window.removeEventListener("afterprint", onAfterPrint);
     };
   }, []);
 
@@ -42,8 +54,10 @@ export default function ScreenshotGuard({ children, message = "Privacy Protected
         e.key === "PrintScreen" ||
         (ctrl && e.shiftKey && ["s", "3", "4", "5"].includes(key)) ||
         (e.altKey && e.key === "PrintScreen") ||
-        (ctrl && ["p", "s", "u"].includes(key)) ||
-        e.key === "F12";
+        (e.metaKey && e.shiftKey && e.altKey && ["3", "4"].includes(key)) ||
+        (ctrl && ["p", "s", "u", "i", "j", "c"].includes(key)) ||
+        e.key === "F12" ||
+        e.key === "F11";
       if (isScreenshot) {
         e.preventDefault();
         e.stopPropagation();

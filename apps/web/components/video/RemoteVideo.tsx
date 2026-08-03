@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Partner } from "@/types";
+import VideoWatermark from "@/components/privacy/VideoWatermark";
 
 interface RemoteVideoProps {
   stream: MediaStream | null;
@@ -23,7 +24,10 @@ export default function RemoteVideo({ stream, partner }: RemoteVideoProps) {
   return (
     <div className="relative w-full h-full rounded-2xl overflow-hidden bg-surface-dark">
       {stream ? (
-        <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+        <>
+          <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <VideoWatermark userId={partner?.id} />
+        </>
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-surface-dark">
           <div className="text-center">

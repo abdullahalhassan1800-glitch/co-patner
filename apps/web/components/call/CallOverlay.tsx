@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { OnlineUser, getCountryFlag } from "@/lib/data/mockUsers";
 import { deductCredits, RATE_AUDIO, RATE_VIDEO, getCredits } from "@/lib/credits";
 import ScreenshotGuard from "@/components/privacy/ScreenshotGuard";
+import VideoWatermark from "@/components/privacy/VideoWatermark";
 
 interface CallOverlayProps {
   user: OnlineUser;
@@ -91,8 +92,9 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
           <div className="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-secondary/[0.03] rounded-full blur-[180px]" />
         </div>
 
-      <div className="flex-1 relative flex items-center justify-center">
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex-1 relative flex items-center justify-center">
+          <VideoWatermark userId={user.id} className="absolute inset-0 overflow-hidden" />
+          <div className="absolute inset-0 flex items-center justify-center">
           {mode === "video" && !isVideoOff ? (
             <div className="w-full h-full bg-[#0a0a14] flex items-center justify-center">
               <video
