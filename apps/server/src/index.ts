@@ -162,11 +162,14 @@ setupSocketHandlers(io);
 async function start() {
   if (MONGODB_URI) {
     try {
-      await mongoose.connect(MONGODB_URI);
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+      });
       console.log(`🍃 MongoDB connected`);
     } catch (err) {
-      console.error(`MongoDB connection failed:`, err);
-      process.exit(1);
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`⚠️  MongoDB connection failed (${message}) — falling back to in-memory storage`);
     }
   } else {
     console.log(`⚠️  No MONGODB_URI set — using in-memory storage`);
