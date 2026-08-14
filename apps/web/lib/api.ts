@@ -66,8 +66,7 @@ export const api = {
   wallet: {
     getBalance: () => fetchApi("/wallet/balance"),
     recharge: (amount: number) =>
-      fetchApi("/wallet/recharge", { method: "POST", body: JSON.stringify({ amount }) }),
-    spend: (amount: number, description: string) =>
+      fetchApi("/wallet/recharge", { method: "POST", body: JSON.stringify({ amount }) }),    spend: (amount: number, description: string) =>
       fetchApi("/wallet/spend", { method: "POST", body: JSON.stringify({ amount, description }) }),
     getHistory: () => fetchApi("/wallet/history"),
   },

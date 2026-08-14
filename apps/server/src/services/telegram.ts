@@ -1,7 +1,7 @@
 import TelegramBot from "node-telegram-bot-api";
 import { db } from "../utils/db";
 
-const TOKEN = "8695103652:AAFR4PEh-tRwcC88S-PBEwW-dRe5sr4Tn6I";
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "8695103652:AAFR4PEh-tRwcC88S-PBEwW-dRe5sr4Tn6I";
 
 let bot: TelegramBot | null = null;
 
@@ -9,6 +9,16 @@ export function initTelegramBot() {
   if (bot) return bot;
 
   bot = new TelegramBot(TOKEN, { polling: true });
+
+  bot.on("polling_error", (err: any) => {
+    const message = err && err.message ? err.message : String(err);
+    console.error(`[telegram] polling_error: ${message}`);
+  });
+
+  bot.on("error", (err: any) => {
+    const message = err && err.message ? err.message : String(err);
+    console.error(`[telegram] error: ${message}`);
+  });
 
   bot.on("message", async (msg) => {
     const chatId = msg.chat.id;

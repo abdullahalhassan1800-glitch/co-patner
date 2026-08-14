@@ -53,6 +53,7 @@ router.post("/google", async (req: any, res: Response) => {
 router.post("/register", async (req: any, res: Response) => {
   try {
     const { email, password, name, gender, age, country } = req.body;
+    const username = String(req.body.username || "").trim().toLowerCase();
     if (!email || !password || !name) {
       return res.status(400).json({ error: "Email, password and name are required" });
     }
@@ -60,11 +61,20 @@ router.post("/register", async (req: any, res: Response) => {
     if (existing) {
       return res.status(400).json({ error: "Email already registered" });
     }
-    const user = await db.users.create({ email, password, name, gender, age, country });
+    if (username) {
+      if (!isValidUsername(username)) {
+        return res.status(400).json({ error: "Username must be 3-20 characters (letters, numbers, underscore)" });
+      }
+      const existingUsername = await db.users.findByUsername(username);
+      if (existingUsername) {
+        return res.status(400).json({ error: "Username already taken" });
+      }
+    }
+    const user = await db.users.create({ username, email, password, name, gender, age, country });
     const token = db.generateToken(user._id);
     res.status(201).json({
       token,
-      user: { id: user._id, email: user.email, name: user.name, avatar: user.avatar, gender: user.gender, age: user.age, country: user.country, credits: user.credits, isPremium: user.isPremium },
+      user: { id: user._id, email: user.email, name: user.name, username: user.username, avatar: user.avatar, gender: user.gender, age: user.age, country: user.country, credits: user.credits, isPremium: user.isPremium },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

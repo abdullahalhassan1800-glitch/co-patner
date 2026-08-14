@@ -22,6 +22,12 @@ export default function WalletPage() {
     const stored = localStorage.getItem("co_patner_user");
     if (!stored) { router.push("/login"); return; }
     setCredits(JSON.parse(stored).credits || 0);
+    api.wallet.getBalance().then((d) => {
+      if (d.credits != null) {
+        setCredits(d.credits);
+        localStorage.setItem("co_patner_credits", String(d.credits));
+      }
+    }).catch(() => {});
     loadHistory();
   }, [router]);
 
@@ -29,11 +35,12 @@ export default function WalletPage() {
     try { const data = await api.wallet.getHistory(); setHistory(data.transactions); } catch {}
   };
 
-  const handleRecharge = async (amount: number) => {
+  const handleRecharge = async (coins: number) => {
     setLoading(true);
     try {
-      const data = await api.wallet.recharge(amount);
+      const data = await api.wallet.recharge(coins);
       setCredits(data.credits);
+      localStorage.setItem("co_patner_credits", String(data.credits));
       const stored = JSON.parse(localStorage.getItem("co_patner_user") || "{}");
       stored.credits = data.credits;
       localStorage.setItem("co_patner_user", JSON.stringify(stored));
@@ -63,7 +70,7 @@ export default function WalletPage() {
       <h2 className="text-lg font-bold mb-5 text-white">Buy Coins</h2>
       <div className="grid grid-cols-2 gap-4 mb-10">
         {PACKAGES.map((pkg) => (
-          <button key={pkg.amount} onClick={() => handleRecharge(pkg.amount)} disabled={loading}
+          <button key={pkg.amount} onClick={() => handleRecharge(pkg.coins)} disabled={loading}
             className={`glass rounded-2xl p-5 text-center hover-lift transition-all duration-300 disabled:opacity-40 relative ${
               pkg.popular ? "border-primary/30 ring-1 ring-primary/20" : ""
             }`}>

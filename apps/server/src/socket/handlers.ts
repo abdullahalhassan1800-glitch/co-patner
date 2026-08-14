@@ -53,12 +53,19 @@ export function setupSocketHandlers(io: Server) {
         if (!user) return socket.emit("error", { message: "User not found" });
         if (user.isBanned) return socket.emit("error", { message: "Account banned" });
 
+        if (botTimers.has(socket.id)) {
+          clearTimeout(botTimers.get(socket.id));
+          botTimers.delete(socket.id);
+        }
+        db.queue.remove(socket.id);
+
         const entry = {
           socketId: socket.id,
           userId,
           gender: user.gender,
           country: user.country,
           age: user.age,
+          filters: filters || {},
           timestamp: Date.now(),
         };
 
@@ -98,9 +105,7 @@ export function setupSocketHandlers(io: Server) {
     socket.on("skip", () => {
       handleDisconnect(io, socket, onlineUsers);
       socket.emit("skipped");
-    });
-
-    socket.on("webrtc_offer", (data: { offer: any; roomId: string }) => {
+    });    socket.on("webrtc_offer", (data: { offer: any; roomId: string }) => {
       const room = db.rooms.get(data.roomId);
       if (!room) return;
       const otherSocketId = room.user1Socket === socket.id ? room.user2Socket : room.user1Socket;
@@ -241,7 +246,7 @@ export function setupSocketHandlers(io: Server) {
   });
 }
 
-async function tryMatch(io: Server, filters: any): Promise<boolean> {
+async function tryMatch(io: Server, _filters: any): Promise<boolean> {
   const allEntries = db.queue.getAll();
   if (allEntries.length < 2) return false;
 
@@ -249,7 +254,7 @@ async function tryMatch(io: Server, filters: any): Promise<boolean> {
     for (let j = i + 1; j < allEntries.length; j++) {
       const a = allEntries[i];
       const b = allEntries[j];
-      if (matchesFilters(a, b, filters) || matchesFilters(b, a, filters)) {
+      if (matchesFilters(b, a.filters) && matchesFilters(a, b.filters)) {
         db.queue.remove(a.socketId);
         db.queue.remove(b.socketId);
 
@@ -275,12 +280,13 @@ async function tryMatch(io: Server, filters: any): Promise<boolean> {
   return false;
 }
 
-function matchesFilters(a: any, b: any, filters: any): boolean {
-  if (filters?.gender && filters.gender !== "all" && b.gender !== filters.gender) return false;
-  if (filters?.country && filters.country !== "all" && b.country !== filters.country) return false;
-  if (filters?.minAge && b.age < filters.minAge) return false;
-  if (filters?.maxAge && b.age > filters.maxAge) return false;
-  return a.socketId !== b.socketId;
+function matchesFilters(user: any, filters: any): boolean {
+  if (!filters) return true;
+  if (filters.gender && filters.gender !== "all" && user.gender !== filters.gender) return false;
+  if (filters.country && filters.country !== "all" && user.country !== filters.country) return false;
+  if (filters.minAge && user.age < filters.minAge) return false;
+  if (filters.maxAge && user.age > filters.maxAge) return false;
+  return true;
 }
 
 function handleDisconnect(io: Server, socket: Socket, onlineUsers: Map<string, string>) {

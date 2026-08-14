@@ -25,10 +25,10 @@ export default function ChatPage() {
   const [showReport, setShowReport] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
-  const { localStream, isMicOn, isCamOn, error: mediaError, startMedia, stopMedia, toggleMic, toggleCam } = useMedia();
+  const { localStream, isMicOn, isCamOn, error: mediaError, startMedia, toggleMic, toggleCam } = useMedia();
   const {
     connectionState, partner, remoteStream, messages, isPartnerTyping,
-    error, startChat, skipPartner, sendMessage, sendTyping, sendStopTyping, setConnectionState,
+    error, startChat, skipPartner, leaveChat, sendMessage, sendTyping, sendStopTyping,
   } = useWebRTC(user?.id);
 
   useSocket(user?.id);
@@ -46,25 +46,24 @@ export default function ChatPage() {
     setAgeVerified(true);
   };
 
-  const handleStart = useCallback(async () => {
+  const handleStart = useCallback(async (filters?: MatchFilters) => {
     const stream = await startMedia();
-    if (stream) startChat(stream);
+    if (stream) startChat(stream, filters);
   }, [startMedia, startChat]);
 
   const handleStop = useCallback(() => {
-    stopMedia();
-    setConnectionState("idle");
-  }, [stopMedia, setConnectionState]);
+    leaveChat();
+  }, [leaveChat]);
 
   const handleRetry = useCallback(() => {
-    handleStop();
+    leaveChat();
     setTimeout(() => handleStart(), 300);
-  }, [handleStop, handleStart]);
+  }, [leaveChat, handleStart]);
 
-  const handleFilterApply = (filters: MatchFilters) => {
-    handleStop();
-    handleStart();
-  };
+  const handleFilterApply = useCallback((filters: MatchFilters) => {
+    leaveChat();
+    setTimeout(() => handleStart(filters), 300);
+  }, [leaveChat, handleStart]);
 
   const handleReport = async (reason: string, description: string) => {
     if (partner) {

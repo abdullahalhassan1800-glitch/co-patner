@@ -30,13 +30,29 @@ export default function FriendsPage() {
     try { const data = await api.user.getFriends(); setFriends(data.friends); } catch {}
   };
 
+  const handleInvite = async () => {
+    const text = "Join me on Co-Patner for live video chat!";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Co-Patner", text });
+        return;
+      }
+    } catch {}
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {}
+  };
+
   const filtered = friends.filter((f) => f.name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 pt-24">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-black text-white">Friends</h1>
-        <button className="btn-main px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg shadow-primary/25">
+        <button
+          onClick={handleInvite}
+          className="btn-main px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg shadow-primary/25"
+        >
           <span className="flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
             Invite

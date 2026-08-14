@@ -25,9 +25,12 @@ router.get("/balance", authMiddleware, async (req: any, res: Response) => {
 router.post("/recharge", authMiddleware, async (req: any, res: Response) => {
   try {
     const { amount } = req.body;
-    const creditsToAdd = amount * 2;
+    const creditsToAdd = Math.floor(Number(amount));
+    if (!Number.isFinite(creditsToAdd) || creditsToAdd <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
     await db.users.incrementCredits(req.userId, creditsToAdd);
-    await db.transactions.create({ userId: req.userId, amount: creditsToAdd, type: "recharge", description: `Recharged ₹${amount} for ${creditsToAdd} coins` });
+    await db.transactions.create({ userId: req.userId, amount: creditsToAdd, type: "recharge", description: `Recharged ${creditsToAdd} coins` });
     const user = await db.users.findById(req.userId);
     res.json({ credits: user?.credits || 0, added: creditsToAdd });
   } catch (err: any) {
@@ -38,12 +41,17 @@ router.post("/recharge", authMiddleware, async (req: any, res: Response) => {
 router.post("/spend", authMiddleware, async (req: any, res: Response) => {
   try {
     const { amount, description } = req.body;
+    const numAmount = Number(amount);
+    if (!Number.isFinite(numAmount) || numAmount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
     const user = await db.users.findById(req.userId);
     if (!user) return res.status(404).json({ error: "User not found" });
-    if (user.credits < amount) return res.status(400).json({ error: "Insufficient credits" });
-    user.credits -= amount;
-    await db.transactions.create({ userId: req.userId, amount, type: "spend", description: description || "Spent credits" });
-    res.json({ credits: user.credits });
+    if ((user.credits || 0) < numAmount) return res.status(400).json({ error: "Insufficient credits" });
+    await db.users.incrementCredits(req.userId, -numAmount);
+    await db.transactions.create({ userId: req.userId, amount: numAmount, type: "spend", description: description || "Spent credits" });
+    const updated = await db.users.findById(req.userId);
+    res.json({ credits: updated?.credits || 0 });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

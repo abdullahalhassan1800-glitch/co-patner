@@ -3,7 +3,7 @@
 import { useRef, useCallback, useState, useEffect } from "react";
 import { getSocket } from "@/lib/socket";
 import { api } from "@/lib/api";
-import { Room, Partner, ChatMessage, ConnectionState } from "@/types";
+import { Room, Partner, ChatMessage, ConnectionState, MatchFilters } from "@/types";
 
 const DEFAULT_ICE_SERVERS: RTCConfiguration = {
   iceServers: [
@@ -21,6 +21,12 @@ export function useWebRTC(userId: string | undefined) {
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const iceServersRef = useRef<RTCConfiguration>(DEFAULT_ICE_SERVERS);
   const roomRef = useRef<Room | null>(null);
+  const filtersRef = useRef<MatchFilters>({ gender: "all", country: "all", minAge: 18, maxAge: 99 });
+  const userIdRef = useRef<string | undefined>(userId);
+
+  useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
 
   const [connectionState, setConnectionState] = useState<ConnectionState>("idle");
   const [room, setRoom] = useState<Room | null>(null);
@@ -93,14 +99,15 @@ export function useWebRTC(userId: string | undefined) {
   }, []);
 
   const startChat = useCallback(
-    async (localStream: MediaStream) => {
+    async (localStream: MediaStream, filters?: MatchFilters) => {
       localStreamRef.current = localStream;
+      if (filters) filtersRef.current = filters;
       setConnectionState("searching");
       setError(null);
 
       getSocket().emit("join_queue", {
         userId,
-        filters: { gender: "all", country: "all", minAge: 18, maxAge: 99 },
+        filters: filtersRef.current,
       });
     },
     [userId]
@@ -112,7 +119,21 @@ export function useWebRTC(userId: string | undefined) {
     }
     cleanup();
     setConnectionState("searching");
-  }, [room]);
+    getSocket().emit("join_queue", {
+      userId: userIdRef.current,
+      filters: filtersRef.current,
+    });
+  }, [room, cleanup]);
+
+  const leaveChat = useCallback(() => {
+    if (roomRef.current) {
+      getSocket().emit("skip", { roomId: roomRef.current.roomId });
+    } else {
+      getSocket().emit("leave_queue");
+    }
+    cleanup();
+    setConnectionState("idle");
+  }, [cleanup]);
 
   const cleanup = useCallback(() => {
     if (peerRef.current) {
@@ -269,6 +290,7 @@ export function useWebRTC(userId: string | undefined) {
     error,
     startChat,
     skipPartner,
+    leaveChat,
     cleanup,
     sendMessage,
     sendTyping,

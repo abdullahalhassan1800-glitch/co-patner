@@ -9,7 +9,7 @@ import VideoWatermark from "@/components/privacy/VideoWatermark";
 interface CallOverlayProps {
   user: OnlineUser;
   mode: "audio" | "video";
-  onEndCall: () => void;
+  onEndCall: (duration: number, cost: number) => void;
   remoteStream: MediaStream | null;
   localStream: MediaStream | null;
 }
@@ -81,7 +81,7 @@ export default function CallOverlay({ user, mode, onEndCall, remoteStream, local
 
   const handleEnd = () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    onEndCall();
+    onEndCall(seconds, cost);
   };
 
   return (

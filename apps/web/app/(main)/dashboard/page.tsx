@@ -65,7 +65,7 @@ export default function DashboardPage() {
   }, [user]);
 
   const { socket } = useSocket(serverUserId);
-  const { incomingCall, callAccepted, callRejected, callEnded, callError, remoteStream, localStream, initiateCall, acceptCall, rejectCall, endCall, resetCallState } = useCallSocket(serverUserId);
+  const { incomingCall, callAccepted, callRejected, callEnded, callError, callStats, remoteStream, localStream, initiateCall, acceptCall, rejectCall, endCall, resetCallState } = useCallSocket(serverUserId);
 
   useEffect(() => {
     if (!loading && !user) { router.push("/login"); return; }
@@ -76,7 +76,7 @@ export default function DashboardPage() {
           const realUsers = (data.users || []).map(serverUserToOnlineUser);
           setUsers(realUsers);
           const myId = serverUserId;
-          if (myId && !realUsers.find((u: OnlineUser) => u.id === myId)) {
+          if (myId && Array.isArray(data.users) && !realUsers.find((u: OnlineUser) => u.id === myId)) {
             localStorage.removeItem("co_patner_user");
             localStorage.removeItem("co_patner_token");
             window.location.reload();
@@ -140,9 +140,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (callEnded && callState === "active") {
+      setCallDuration(callStats.duration);
+      setCallCost(callStats.cost);
       setCallState("summary");
     }
-  }, [callEnded, callState]);
+  }, [callEnded, callState, callStats]);
 
   const filteredUsers = useMemo(() => {
     let result = users.filter((u) => u.isOnline);
@@ -228,14 +230,26 @@ export default function DashboardPage() {
     resetCallState();
   }, [resetCallState]);
 
-  const handleEndCall = useCallback(() => {
+  const handleEndCall = useCallback((duration?: number, cost?: number) => {
+    const dur = duration || 0;
+    const cst = cost || 0;
+    setCallDuration(dur);
+    setCallCost(cst);
     if (callState === "active") {
-      endCall(callDuration, callCost);
+      endCall(dur, cst);
+      if (cst > 0) {
+        api.wallet
+          .spend(cst, "Call charges")
+          .then((d) => {
+            if (d.credits != null) localStorage.setItem("co_patner_credits", String(d.credits));
+          })
+          .catch(() => {});
+      }
       setCallState("summary");
     } else if (callState === "ringing") {
       handleRingingReject();
     }
-  }, [callState, callDuration, callCost, endCall, handleRingingReject]);
+  }, [callState, endCall, handleRingingReject]);
 
   const handleSummaryDone = useCallback(() => {
     setCallState("idle");

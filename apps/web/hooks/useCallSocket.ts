@@ -25,6 +25,7 @@ export function useCallSocket(userId: string | undefined) {
   const [callRejected, setCallRejected] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [callError, setCallError] = useState<string | null>(null);
+  const [callStats, setCallStats] = useState<{ duration: number; cost: number }>({ duration: 0, cost: 0 });
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
 
@@ -213,6 +214,7 @@ export function useCallSocket(userId: string | undefined) {
     };
 
     const handleCallEnded = (data: { duration: number; cost: number }) => {
+      setCallStats({ duration: data.duration || 0, cost: data.cost || 0 });
       setCallEnded(true);
       cleanupWebRTC();
     };
@@ -356,6 +358,7 @@ export function useCallSocket(userId: string | undefined) {
     setCallRejected(false);
     setCallEnded(false);
     setCallError(null);
+    setCallStats({ duration: 0, cost: 0 });
     cleanupWebRTC();
   }, [cleanupWebRTC]);
 
@@ -365,6 +368,7 @@ export function useCallSocket(userId: string | undefined) {
     callRejected,
     callEnded,
     callError,
+    callStats,
     remoteStream,
     localStream,
     initiateCall,
