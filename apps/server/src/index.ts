@@ -146,10 +146,13 @@ async function seedUsers() {
     { _id: "user_dev_001", email: "dev@test.com", password: "Test1234", name: "DEV", gender: "male", age: 22, country: "IN", avatar: "https://i.pravatar.cc/300?img=12", bio: "DEV host", interests: ["Gaming", "Music", "Tech"], credits: 100000 },
   ];
   for (const u of users) {
-    const existing = await db.users.findByEmail(u.email);
-    if (!existing) {
+    try {
+      const existing = await db.users.findById(u._id);
+      if (existing) continue;
       await db.users.create(u);
       console.log(`✅ Seeded user: ${u.email}`);
+    } catch (err: any) {
+      console.error(`⚠️ Skipped seed for ${u.email}: ${err.message}`);
     }
   }
 }
@@ -184,8 +187,8 @@ async function start() {
   httpServer.listen(PORT, () => {
     console.log(`🚀 Co-Patner server running on http://localhost:${PORT}`);
     console.log(`📡 Socket.IO ready`);
-    seedUsers();
-    initTelegramBot();
+    seedUsers().catch((err) => console.error(`⚠️ Seed error: ${err.message}`));
+    try { initTelegramBot(); } catch (err: any) { console.error(`⚠️ Telegram bot error: ${err.message}`); }
   });
 }
 
