@@ -128,6 +128,7 @@ export const db = {
     },
     getBySocket(socketId: string): string | undefined { return clientRooms.get(socketId); },
     setClientRoom(socketId: string, roomId: string) { clientRooms.set(socketId, roomId); },
+    all(): [string, any][] { return [...rooms.entries()]; },
   },
 
   generateToken(userId: string): string {

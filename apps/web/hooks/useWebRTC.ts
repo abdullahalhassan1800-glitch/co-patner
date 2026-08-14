@@ -91,6 +91,10 @@ export function useWebRTC(userId: string | undefined) {
         setConnectionState("disconnected");
         if (state === "failed") {
           setError("Connection failed - check firewall/antivirus or try again");
+          if (roomRef.current) {
+            getSocket().emit("skip", { roomId: roomRef.current.roomId });
+            roomRef.current = null;
+          }
         }
       }
     };
@@ -268,6 +272,10 @@ export function useWebRTC(userId: string | undefined) {
     socket.on("partner_stop_typing", () => setIsPartnerTyping(false));
 
     return () => {
+      if (roomRef.current) {
+        getSocket().emit("skip", { roomId: roomRef.current.roomId });
+        roomRef.current = null;
+      }
       socket.off("matched");
       socket.off("webrtc_offer");
       socket.off("webrtc_answer");

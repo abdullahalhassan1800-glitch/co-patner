@@ -291,13 +291,32 @@ function matchesFilters(user: any, filters: any): boolean {
 
 function handleDisconnect(io: Server, socket: Socket, onlineUsers: Map<string, string>) {
   db.queue.remove(socket.id);
-  const roomId = db.rooms.getBySocket(socket.id);
-  if (roomId) {
-    const room = db.rooms.get(roomId);
-    if (room) {
-      const otherSocketId = room.user1Socket === socket.id ? room.user2Socket : room.user1Socket;
-      io.to(otherSocketId).emit("partner_disconnected");
+  const userId = onlineUsers.get(socket.id);
+
+  let roomId: string | undefined = db.rooms.getBySocket(socket.id);
+  let room = roomId ? db.rooms.get(roomId) : undefined;
+
+  if (!room && userId) {
+    for (const [rid, r] of db.rooms.all()) {
+      if (r.user1Id === userId || r.user2Id === userId) {
+        room = r;
+        roomId = rid;
+        break;
+      }
     }
+  }
+
+  if (room && roomId) {
+    const otherUserId = room.user1Id === userId ? room.user2Id : room.user1Id;
+    let otherSocketId: string | undefined;
+    if (otherUserId && !String(otherUserId).startsWith("bot_")) {
+      const current = [...onlineUsers.entries()].find(([_, uid]) => uid === otherUserId)?.[0];
+      otherSocketId = current;
+    } else {
+      otherSocketId = room.user1Socket === socket.id ? room.user2Socket : room.user1Socket;
+      if (!otherSocketId || otherSocketId === socket.id || otherSocketId === "bot") otherSocketId = undefined;
+    }
+    if (otherSocketId) io.to(otherSocketId).emit("partner_disconnected");
     db.rooms.delete(roomId);
   }
 }

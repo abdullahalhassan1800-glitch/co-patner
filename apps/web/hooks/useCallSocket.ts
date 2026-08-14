@@ -125,6 +125,9 @@ export function useCallSocket(userId: string | undefined) {
       if (state === "failed") {
         console.error("WebRTC connection failed");
         setCallError("Connection failed - check firewall/antivirus");
+        if (targetSocketRef.current) {
+          getSocket().emit("call_end", { toSocketId: targetSocketRef.current, duration: 0, cost: 0 });
+        }
       }
     };
 
@@ -282,6 +285,10 @@ export function useCallSocket(userId: string | undefined) {
     socket.on("call_ice_candidate", handleCallIceCandidate);
 
     return () => {
+      if (targetSocketRef.current) {
+        getSocket().emit("call_end", { toSocketId: targetSocketRef.current, duration: 0, cost: 0 });
+        targetSocketRef.current = null;
+      }
       socket.off("call_incoming", handleCallIncoming);
       socket.off("call_accepted", handleCallAccepted);
       socket.off("call_rejected", handleCallRejected);

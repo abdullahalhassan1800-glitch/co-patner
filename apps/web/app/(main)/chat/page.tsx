@@ -150,6 +150,25 @@ export default function ChatPage() {
                 {(connectionState === "searching" || connectionState === "connecting") && (
                   <MatchOverlay state={connectionState} partnerName={partner?.name} partnerAvatar={partner?.avatar} />
                 )}
+                {connectionState === "disconnected" && (
+                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface rounded-2xl">
+                    <div className="text-center animate-slide-up px-6">
+                      <div className="w-24 h-24 rounded-[2rem] bg-accent/15 border border-accent/25 flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-10 h-10 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                      </div>
+                      <h2 className="text-2xl font-black mb-2 text-white">Call Ended</h2>
+                      <p className="text-gray-400 mb-6 max-w-md mx-auto text-sm">Your partner has left the call</p>
+                      <div className="flex items-center justify-center gap-3">
+                        <button onClick={handleStart} className="btn-glow px-6 py-3.5 rounded-2xl text-sm font-bold text-white shadow-2xl shadow-primary/30">
+                          Start New Chat
+                        </button>
+                        <button onClick={() => router.push("/dashboard")} className="btn-ghost px-5 py-3.5 rounded-2xl text-sm font-semibold text-gray-300">
+                          Home
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {connectionState === "idle" && !localStream && (
                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface rounded-2xl">
                     <div className="text-center animate-slide-up px-6">
