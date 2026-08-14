@@ -1,0 +1,55 @@
+{
+  "packageId": "com.copatner.app",
+  "host": "co-patner.onrender.com",
+  "name": "Co-Patner",
+  "launcherName": "Co-Patner",
+  "display": "fullscreen",
+  "displayOverride": ["fullscreen", "standalone", "minimal-ui"],
+  "themeColor": "#06060A",
+  "navigationColor": "#06060A",
+  "backgroundColor": "#06060A",
+  "startUrl": "/",
+  "webManifestUrl": "http://localhost:8099/manifest.json",
+  "iconUrl": "http://localhost:8099/icons/icon-512.png",
+  "maskableIconUrl": "http://localhost:8099/icons/icon-512.png",
+  "monochromeIconUrl": "http://localhost:8099/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "appVersion": "1",
+  "appVersionCode": 1,
+  "minSdkVersion": 21,
+  "enableNotifications": true,
+  "enableSiteSettingsShortcut": true,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "shortName": "Discover",
+      "url": "/dashboard",
+      "chosenIconUrl": "http://localhost:8099/icons/icon-192.png"
+    },
+    {
+      "name": "Chat",
+      "shortName": "Chat",
+      "url": "/chat",
+      "chosenIconUrl": "http://localhost:8099/icons/icon-192.png"
+    },
+    {
+      "name": "Friends",
+      "shortName": "Friends",
+      "url": "/friends",
+      "chosenIconUrl": "http://localhost:8099/icons/icon-192.png"
+    }
+  ],
+  "orientation": "portrait",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fallbackType": "customtabs",
+  "generatorApp": "bubblewrap-cli"
+}

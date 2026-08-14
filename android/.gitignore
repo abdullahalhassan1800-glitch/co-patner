@@ -1,0 +1,20 @@
+# Build outputs
+/build/
+/app/build/
+/dist/
+/.gradle/
+
+# Signing
+*.keystore
+*.jks
+store_icon.png
+
+# APK/AAB artifacts
+*.apk
+*.aab
+*.idsig
+
+# IDE
+.idea/
+*.iml
+local.properties
