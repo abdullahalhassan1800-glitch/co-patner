@@ -64,6 +64,17 @@ export function useWebRTC(userId: string | undefined) {
       pc.addTrack(track, localStream);
     });
 
+    const videoSender = pc.getSenders().find((s) => s.track && s.track.kind === "video");
+    if (videoSender) {
+      const params = videoSender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+      params.encodings[0].maxBitrate = 2_500_000;
+      params.encodings[0].maxFramerate = 30;
+      videoSender.setParameters(params).catch(() => {});
+    }
+
     pc.ontrack = (event) => {
       if (!event.track) return;
       if (!remoteStreamRef.current) {
