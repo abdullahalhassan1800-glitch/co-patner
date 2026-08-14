@@ -162,15 +162,28 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255,255,255,0.05);
 }
 
-/* === PREVENT iOS AUTO-ZOOM ON FOCUS ===
-   iOS Safari zooms the page when an input with font-size < 16px is focused.
-   Force all form fields to 16px on small screens so typing never zooms. */
+/* === PREVENT AUTO-ZOOM ON FOCUS / TYPING ===
+   Mobile browsers/WebViews zoom the page when an input with font-size < 16px is focused.
+   Force all form fields to 16px, disable double-tap zoom on controls and stop text
+   inflation so typing never zooms the page. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 @media (max-width: 767px) {
   input,
   select,
   textarea {
     font-size: 16px !important;
   }
+}
+
+input,
+select,
+textarea,
+button {
+  touch-action: manipulation;
 }
 
 /* === STATUS BADGES === */
