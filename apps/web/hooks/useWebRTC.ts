@@ -70,7 +70,7 @@ export function useWebRTC(userId: string | undefined) {
       if (!params.encodings || params.encodings.length === 0) {
         params.encodings = [{}];
       }
-      params.encodings[0].maxBitrate = 2_500_000;
+      params.encodings[0].maxBitrate = 4_000_000;
       params.encodings[0].maxFramerate = 30;
       videoSender.setParameters(params).catch(() => {});
     }

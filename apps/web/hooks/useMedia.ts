@@ -22,7 +22,7 @@ export function useMedia(): UseMediaReturn {
   const startMedia = useCallback(async (): Promise<MediaStream | null> => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { min: 640, ideal: 1280 }, height: { min: 480, ideal: 720 }, frameRate: { min: 15, ideal: 30 }, facingMode: "user" },
+        video: { width: { min: 640, ideal: 1920 }, height: { min: 480, ideal: 1080 }, frameRate: { min: 15, ideal: 30 }, facingMode: "user" },
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
       });
       setLocalStream(stream);

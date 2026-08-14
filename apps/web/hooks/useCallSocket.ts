@@ -60,7 +60,7 @@ export function useCallSocket(userId: string | undefined) {
       }
       const constraints: MediaStreamConstraints = {
         audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        video: mode === "video" ? { width: { min: 640, ideal: 1280 }, height: { min: 480, ideal: 720 }, frameRate: { min: 15, ideal: 30 }, facingMode: "user" } : false,
+        video: mode === "video" ? { width: { min: 640, ideal: 1920 }, height: { min: 480, ideal: 1080 }, frameRate: { min: 15, ideal: 30 }, facingMode: "user" } : false,
       };
       console.log("🎤 Requesting media:", constraints);
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -107,7 +107,7 @@ export function useCallSocket(userId: string | undefined) {
       if (!params.encodings || params.encodings.length === 0) {
         params.encodings = [{}];
       }
-      params.encodings[0].maxBitrate = 2_500_000;
+      params.encodings[0].maxBitrate = 4_000_000;
       params.encodings[0].maxFramerate = 30;
       videoSender.setParameters(params).catch(() => {});
     }

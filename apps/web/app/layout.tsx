@@ -39,7 +39,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#06060A] text-gray-200 antialiased noise">
+      <body className="bg-[#06060A] text-gray-200 antialiased">
         <link rel="manifest" href="/manifest.json" />
         <script
           dangerouslySetInnerHTML={{
